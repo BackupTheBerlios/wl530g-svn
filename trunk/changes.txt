@@ -1,0 +1,36 @@
+09/13/06 (3)
+
+  * fixed bad busybox in last copy.. 
+  * included cpu utility (reports cpu utilization).
+
+09/13/06 (2)
+
+  * included previously missing PPP* modules, so PPP/PPPOE support should work now.
+  * fixed missing vi (had been over-written by old busybox symlink..sigh).
+  * fixed /jffs/etc/init.d scripts not being executed (old /jffs2 directory name was been used).
+  * reworked mtd mappings and removed write protection on mtd0.  
+  * increased jffs2 size by 64KB (note: run 'mtd erase /dev/mtd2' to erase the jffs2 partition, forcing re-initialization of its data structures).
+
+09/12/06
+	
+  * fixed productid/firmver bug in last build, which had resulted in various problems.
+  * fixed WLAN led being 'broken' in last build.
+  * added mtd utility from openwrt (allows write/erase of mtd partitions).
+  * which reminds me, I enabled RO mtd driver protection on mtd0 and mtd1 in the last build.
+  * removed mtd1 mtd driver write protection, mtd0 protection still in effect.
+  * really expanded JFFS2 size by 64KB (last build increase was offset by a 64KB decrease when making room for nvram area). Still haven't written the code to dynamically determine available size.
+  * fixed inconsequential but disturbing "crams: wrong magic" and "VFS: can't find ext2.." startup messages, which were because "-t jffs2" wasn't specified when mounting the jffs2 partition, causing it to try all filesystem drivers sequentially until success.
+
+09/10/06 (3)
+
+  * added dedicated nvram mtd partition, mtd3, size 64KB.
+  * moved mfg_data mtd partition to mtd4 (still at same flash offset).
+  * enabled allowance for missing mfg_data mtd partition, falls back to /etc/mfg_data.
+  * increased size of jffs2 partition by 64KB (soon will be dynamically determined).
+  * renamed /jffs2 mount to /jffs.
+  * added /jffs/etc/init.d/S* startup script support.
+  * fixed missing busybox applets in last build (like chmod). Whoops.
+  * more optimal busybox.
+  * added smbfs.o kernel module for mounting samba file systems. Use insmod to load.
+
+..... previous changes can be found on wiki or forum .....
