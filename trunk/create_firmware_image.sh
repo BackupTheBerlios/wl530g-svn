@@ -16,5 +16,5 @@ if [ -f "firmware_images/$OUTPUT_FILE" ]; then
 fi
 mv firmware_images/temp/custom_image-wl530g.trx firmware_images/$OUTPUT_FILE
 rm firmware_images/latest_db90h_firmware_image.bin
-ln -s firmware_images/$OUTPUT_FILE firmware_images/latest_db90h_firmware_image.bin
+ln -s firmware_images/$OUTPUT_FILE latest_db90h_firmware_image.bin
 rm -rf firmware_images/temp
