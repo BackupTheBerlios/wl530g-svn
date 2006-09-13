@@ -1,3 +1,8 @@
+09/14/06
+
+  * changed name to Liberated Libertas Firmware. 
+  * changed MOTD.  
+
 09/13/06 (3)
 
   * fixed bad busybox in last copy.. 
