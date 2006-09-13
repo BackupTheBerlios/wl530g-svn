@@ -1,14 +1,11 @@
 #!/bin/sh
 #
-# (c) 2006 Jeremy Collake <jeremy@bitsum.com>
-# Released under GPL 2 license
-#
 # This script builds a new firmware image.
 #
 current_date=$(date +%m%d%y)
 OUTPUT_FILE=wl530g_db90h_"$current_date"_en.bin
 cd firmware-mod-kit
-./build_firmware.sh ../firmware_images/temp ../firmware_files/db90h_edition/
+./build_firmware.sh ../firmware_images/temp ../firmware_files
 cd ..
 if [ -f "firmware_images/$OUTPUT_FILE" ]; then
 	echo " WARNING: over-writing old $OUTPUT_FILE"
