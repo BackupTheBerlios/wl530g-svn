@@ -24,7 +24,7 @@ usage(void)
 {
 	//fprintf(stderr, "usage: nvram [get name] [set name=value] [unset name] [show]\n");
 
-	printf("usage: nvram [get name] [set name=value] [unset name] [show]\n");
+	printf("use: nvram [get name] [set name=val] [unset name] [show] [save fn] [restore fn]\n");
 	exit(0);
 }
 
