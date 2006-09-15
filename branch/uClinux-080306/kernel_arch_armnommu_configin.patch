@@ -1,0 +1,132 @@
+--- uClinux-dist.orig/linux-2.4.x//arch/armnommu/config.in	2005-12-07 09:10:28.000000000 -0500
++++ uClinux-dist/linux-2.4.x/arch/armnommu/config.in	2006-09-14 21:48:49.000000000 -0400
+@@ -50,6 +50,8 @@
+ mainmenu_option next_comment
+ comment 'System Type'
+ choice 'ARM system type' \
++	 "Firefox		CONFIG_ARCH_FIREFOX \
++	  Libertas		CONFIG_ARCH_LIBERTAS" Libertas
+ 	 "TI-DSC21		CONFIG_ARCH_DSC21 \
+ 	  TI-VC547X		CONFIG_ARCH_VC547X \
+ 	  TI-DM270		CONFIG_ARCH_DM270 \
+@@ -726,6 +728,120 @@
+    fi
+ fi
+ 
++
++if [ "$CONFIG_ARCH_LIBERTAS" = "y" ]; then
++	choice 'Libertas machine' \
++		"AP22		CONFIG_LIBERTAS_AP22  \
++		 AP32		CONFIG_LIBERTAS_AP32" \
++		AP32
++fi
++
++if [ "$CONFIG_ARCH_FIREFOX" = "y" ]; then
++	choice 'Firefox machine' \
++		"DB-88E62x8	CONFIG_FIREFOX_DBFF  \
++		 RD-88E62x8	CONFIG_FIREFOX_RDFF" \
++		RD-88E62x8
++fi
++
++bool '  ARM946 CPU idle' CONFIG_CPU_ARM946_CPU_IDLE
++bool '  ARM946 I-Cache on' CONFIG_CPU_ARM946_I_CACHE_ON
++bool '  ARM946 D-Cache on' CONFIG_CPU_ARM946_D_CACHE_ON
++if [ "$CONFIG_CPU_ARM946_D_CACHE_ON" = "y" ] ; then
++   bool '  Force write through caches on ARM946' \
++      	        CONFIG_CPU_ARM946_WRITETHROUGH
++fi
++
++if [ "$CONFIG_ARCH_LIBERTAS" = "y" ]; then
++   if [ "$CONFIG_LIBERTAS_AP32" = "y" ]; then
++      choice 'System Clock' \
++         "128MHz  CONFIG_128MHZ_CLOCK \
++          160MHz  CONFIG_160MHZ_CLOCK" \
++          128MHz
++      choice 'Memory Size' \
++         "8M      CONFIG_8M_MEM \
++          16M     CONFIG_16M_MEM" \
++          16M
++   fi
++fi
++
++bool 'Default bootloader kernel arguments' CONFIG_CMDLINE_BOOL
++if [ "$CONFIG_CMDLINE_BOOL" = "y" ] ; then
++   string 'Initial kernel command string' CONFIG_CMDLINE \
++		"console=ttyS0,38400 root=/dev/mtdblock2"
++fi
++
++bool 'Set flash/sdram size and base addr' CONFIG_SET_MEM_PARAM
++if [ "$CONFIG_SET_MEM_PARAM" = "y" ]; then
++   hex '(S)DRAM Base Address' DRAM_BASE 0xd0000000
++   hex '(S)DRAM Size ' DRAM_SIZE 0xfd6000
++   hex 'FLASH Base Address ' FLASH_MEM_BASE 0xffc00000
++   hex 'FLASH Size ' FLASH_SIZE 0x400000
++   hex 'ROMFS Address in FLASH ' FLASH_ROMFS_BASE 0xffca0000
++   if [ "$CONFIG_LIBERTAS_AP32" = "y" ]; then
++      hex 'JFFS2 Address in FLASH ' FLASH_JFFS2_BASE 0xfff80000
++   fi
++fi
++
++choice 'Kernel executes from' \
++    "RAM	CONFIG_RAMKERNEL \
++     ROM	CONFIG_ROMKERNEL" \
++     ROM
++
++
++if [ "$CONFIG_ARCH_LIBERTAS" = "y" ]; then
++   define_bool CONFIG_NO_PGT_CACHE y
++   define_bool CONFIG_CPU_ARM946 y
++   define_bool CONFIG_CPU_32 y
++   define_bool CONFIG_CPU_26 n
++   define_bool CONFIG_CPU_WITH_CACHE y
++   define_bool CONFIG_CPU_WITH_MCR_INSTRUCTION y
++   define_bool CONFIG_CMDLINE_BOOL y
++   if [ "$CONFIG_LIBERTAS_AP22" = "y" ]; then
++      define_hex DRAM_BASE 0xd0000000
++      define_hex DRAM_SIZE 0x7d6000
++      define_hex FLASH_MEM_BASE 0xffe00000
++      define_hex FLASH_SIZE 0x200000
++      define_hex FLASH_ROMFS_BASE 0xffea0000
++   fi
++   if [ "$CONFIG_LIBERTAS_AP32" = "y" ]; then
++      define_hex DRAM_BASE 0xd0000000
++      if [ "$CONFIG_8M_MEM" = "y" ]; then
++         define_hex DRAM_SIZE 0x7C0000
++      fi
++      if [ "$CONFIG_16M_MEM" = "y" ]; then
++         define_hex DRAM_SIZE 0xfC0000
++      fi
++      define_hex FLASH_MEM_BASE 0xffc00000
++      define_hex FLASH_SIZE 0x400000
++      define_hex FLASH_ROMFS_BASE 0xffca0000
++      define_hex FLASH_JFFS2_BASE 0xfff80000
++   fi
++fi
++
++if [ "$CONFIG_ARCH_FIREFOX" = "y" ]; then
++	define_bool CONFIG_NO_PGT_CACHE y
++	define_bool CONFIG_CPU_ARM946 y
++	define_bool CONFIG_CPU_32 y
++	define_bool CONFIG_CPU_26 n
++	define_bool CONFIG_CPU_WITH_CACHE y
++	define_bool CONFIG_CPU_WITH_MCR_INSTRUCTION y
++	define_bool CONFIG_ROOT_CRAMFS_AS_IMAGE y
++	if [ "$CONFIG_FIREFOX_DBFF" = "y" ]; then
++        	define_hex DRAM_BASE 0xd0000000
++	        define_hex DRAM_SIZE 0x7d6000
++		define_hex FLASH_MEM_BASE 0x20000000
++		define_hex FLASH_SIZE 0x800000
++		define_hex FLASH_ROMFS_BASE 0x200c0000
++	fi
++	if [ "$CONFIG_FIREFOX_RDFF" = "y" ]; then
++        	define_hex DRAM_BASE 0xd0000000
++	        define_hex DRAM_SIZE 0x7d6000
++		define_hex FLASH_MEM_BASE 0xffc00000
++		define_hex FLASH_SIZE 0x400000
++		define_hex FLASH_ROMFS_BASE 0xffca0000
++	fi
++fi
++
+ endmenu
+ 
+ #------------------------------------------------------------------------------
