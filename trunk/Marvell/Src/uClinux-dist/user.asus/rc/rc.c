@@ -153,7 +153,7 @@ create_hostapd_conf(void)
 #ifdef ASUS
 	FILE *fp;
 	char *tmpstr;
-	int mode;
+	int mode;	
 
 	// create hostapd.conf
 	fp=fopen("/tmp/hostapd.conf","w");
@@ -230,8 +230,17 @@ create_hostapd_conf(void)
 	{
 		fprintf(fp, "g_protect=0\n");
 	}
+		
+	tmpstr=nvram_safe_get("iw_mode");
+	if(!tmpstr)
+	{
+		fprintf(fp, "iw_mode=3\n");
+	}
+	else
+	{
+		fprintf(fp, "iw_mode=%s\n",tmpstr);
+	}
 
-	fprintf(fp, "iw_mode=3\n");
 
 	if (nvram_match("wl_rate", "0"))
 	{
