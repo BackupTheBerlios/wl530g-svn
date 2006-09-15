@@ -147,13 +147,40 @@ create_unimac_conf(void)
 	fclose(fp);
 }
 
+/************************************************
+/* jmc:  nvram_safe_get_with_default  
+
+	Returns an nvram value, or its default value if it has no value.
+	todo: move to appropriate source file.
+*/
+char *
+nvram_safe_get_with_default(char *pszVariable, char *pszDefault, char *pszBuffer, unsigned int nBufferLen)
+{	
+	char *pszTemp;
+	pszTemp=nvram_safe_get(pszVariable);
+	if(!pszTemp || !strlen(pszTemp))
+	{
+		if(pszDefault && strlen(pszDefault)<nBufferLen)
+		{
+			strcpy(pszBuffer,pszDefault);
+		}
+		return pszBuffer;
+	}
+	if(pszBuffer && strlen(pszTemp)<nBufferLen)
+	{
+		strcpy(pszBuffer,pszTemp);
+	}	
+	return pszBuffer;
+}
+
 void
 create_hostapd_conf(void)
 {
 #ifdef ASUS
 	FILE *fp;
 	char *tmpstr;
-	int mode;	
+	int mode;
+	char szBuffer[64];	
 
 	// create hostapd.conf
 	fp=fopen("/tmp/hostapd.conf","w");
@@ -231,16 +258,7 @@ create_hostapd_conf(void)
 		fprintf(fp, "g_protect=0\n");
 	}
 		
-	tmpstr=nvram_safe_get("iw_mode");
-	if(!tmpstr)
-	{
-		fprintf(fp, "iw_mode=3\n");
-	}
-	else
-	{
-		fprintf(fp, "iw_mode=%s\n",tmpstr);
-	}
-
+	fprintf(fp, "iw_mode=%s\n",nvram_safe_get_with_default("iw_mode","3",szBuffer,sizeof(szBuffer)));	
 
 	if (nvram_match("wl_rate", "0"))
 	{
@@ -297,7 +315,7 @@ create_hostapd_conf(void)
 	fprintf(fp, "rts_threshold=%s\n", nvram_safe_get("wl_rts")); 		
 	fprintf(fp, "fragment_threshold=%s\n", nvram_safe_get("wl_frag")); 	
 	fprintf(fp, "short_retry_limit=7\n"); 		
-	fprintf(fp, "long_retry_limit=4\n");
+	fprintf(fp, "long_retry_limit=4\n");	
 	fprintf(fp, "current_tx_power_level=1\n");	
 	fprintf(fp, "short_preamble=1\n"); 			
 	fprintf(fp, "channel=%s\n", nvram_safe_get("wl_channel")); 		
