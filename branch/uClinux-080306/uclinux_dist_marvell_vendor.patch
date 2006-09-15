@@ -1,0 +1,6441 @@
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/1 uClinux-dist/vendors/Marvell/Firefox/1
+--- uClinux-dist.orig/vendors/Marvell/Firefox/1	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/1	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++1
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/config.arch uClinux-dist/vendors/Marvell/Firefox/config.arch
+--- uClinux-dist.orig/vendors/Marvell/Firefox/config.arch	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/config.arch	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,166 @@
++.EXPORT_ALL_VARIABLES:
++############################################################################
++#
++# Vendor specific settings
++#
++
++CONSOLE_BAUD_RATE = 38400
++
++############################################################################
++#
++# The makefiles need to know how to do things in different contexts
++# To save some pain we put it all here
++#
++# First settings we always want for all build
++#
++
++# ARCH = kernel,  TARGET_ARCH = uClibc
++
++MACHINE       = arm
++ARCH          = armnommu
++CROSS_COMPILE = arm-elf-
++CROSS         = $(CROSS_COMPILE)
++
++CC        = $(CROSS_COMPILE)gcc $(CPUFLAGS)
++AS        = $(CROSS_COMPILE)as $(CPUFLAGS)
++CXX       = $(CROSS_COMPILE)g++ $(CPUFLAGS)
++AR        = $(CROSS_COMPILE)ar
++LD        = $(CROSS_COMPILE)ld
++OBJCOPY   = $(CROSS_COMPILE)objcopy
++RANLIB    = $(CROSS_COMPILE)ranlib
++ELF2FLT   = elf2flt
++STRIPTOOL = $(CROSS_COMPILE)strip
++STRIP     = $(STRIPTOOL)
++
++UCLINUX_BUILD_SET = 0			# have we set a special config below
++
++############################################################################
++#
++# General purpose lib building rules,  uClibc.config uses these when
++# possible
++#
++
++ifdef UCLINUX_BUILD_LIB
++
++  ifdef CONFIG_LIB_DEBUG
++	CFLAGS  :=  -O1 -g
++  else
++	CFLAGS  :=  -O2 -g 
++  endif
++#	CFLAGS  += -fno-builtin
++#	CFLAGS  += -DEMBED
++
++	# don't want all the CFLAGS for uClibc/Config
++	ARCH_CFLAGS = $(CFLAGS)
++#	CFLAGS  += -I$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/include -I$(ROOTDIR)
++	CFLAGS  += -I$(ROOTDIR)/lib/uClibc/include -I$(ROOTDIR)
++	CFLAGS  += -Dlinux -D__linux__ -D__uClinux__ -Dunix
++	CPUFLAGS := -I$(ROOTDIR)
++	# the following is needed for uClinux-2.4
++	CFLAGS  += -I$(ROOTDIR)/$(LINUXDIR)/include
++
++	LDFLAGS  = $(CFLAGS) -Wl,-elf2flt
++
++	UCLINUX_BUILD_SET=1
++endif
++
++############################################################################
++#
++# Settings for building user apps
++#
++
++ifdef UCLINUX_BUILD_USER
++
++#	GCC_DIR = $(shell $(CC) -v 2>&1|grep specs|sed -e 's/.* \(.*\)specs/\1\./')
++#	GCC_LIB = /usr/local/arm-elf/lib
++
++#	SLIBC        = -lc
++#	SLIBM        = -lm
++#	SLIBNET      = -lnet
++#	SLIBDES      = -ldes
++#	SLIBPCAP     = -lpcap
++#	SLIBSSL      = -lssl
++#	SLIBCRYPTO   = -lcrypto
++
++#	LIBC        = -Wl,-R,$(ROOTDIR)/lib/$(LIBCDIR)/libc.gdb $(SLIBC)
++#	LIBC        = $(SLIBC)
++#	LIBM        = $(SLIBM)
++#	LIBNET      = $(SLIBNET)
++#	LIBDES      = $(SLIBDES)
++#	LIBPCAP     = $(SLIBPCAP)
++#	LIBSSL      = $(SLIBSSL)
++#	LIBCRYPTO   = $(SLIBCRYPTO)
++
++#	LIBGCC      = -lgcc
++#	LIBIBERTY   = -liberty
++#	LIBIO       = -lio
++#	LIBIOSTREAM = -liostream
++#	LIBSTDCPP   = -lstdc++
++
++	LDPATH = -L$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/lib \
++		-L$(ROOTDIR)/lib/libnet \
++		-L$(ROOTDIR)/lib/libpcap
++#		-L$(ROOTDIR)/lib/libm
++#		-L$(ROOTDIR)/lib/$(LIBCDIR)/. \
++#		-L$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/lib \
++#		-L$(ROOTDIR)/lib/libm \
++#		-L$(ROOTDIR)/lib/libnet \
++#		-L$(ROOTDIR)/lib/libdes \
++#		-L$(ROOTDIR)/lib/libpcap \
++#		-L$(ROOTDIR)/lib/libssl \
++#		-L$(ROOTDIR)/lib/zlib
++
++	INCLIBC = -I$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/include
++	INCLIBM = -I$(ROOTDIR)/lib/libm
++	INCNET  = -I$(ROOTDIR)/lib/libnet
++#	INCDES  = -I$(ROOTDIR)/freeswan/libdes
++#	INCGMP  = -I$(ROOTDIR)/lib/libgmp
++	INCPCAP = -I$(ROOTDIR)/lib/libpcap
++#	INCSSL  = -I$(ROOTDIR)/lib/libssl/include
++#	INCZ    = -I$(ROOTDIR)/lib/zlib
++#	INCVEND = -I$(ROOTDIR)/vendors/include
++
++#  ifdef CONFIG_USER_DEBUG
++#	CFLAGS  :=  -O1 -g
++#  else
++#	CFLAGS  :=  -Os
++#  endif
++	CFLAGS  += -Wl,-elf2flt
++	CFLAGS  += -Dlinux -D__linux__ -Dunix -D__uClinux__ -DEMBED
++	CFLAGS  += $(INCLIBC) $(INCLIBM)
++	CFLAGS  += -I$(ROOTDIR)
++#	CFLAGS  += -fno-builtin
++	#
++	# the following is needed for 2.4
++	#
++#	CFLAGS  += -I$(ROOTDIR)/$(LINUXDIR)/include
++
++#	CXXFLAGS = $(CFLAGS) $(INCCXX) -fname-mangling-version-0
++
++	LDFLAGS  = $(CFLAGS) -Wl,-elf2flt $(LDPATH) 
++#-L/usr/local/arm-elf/lib
++#-L$(ROOTDIR)/lib/uClibc/lib
++	LDLIBS   = $(LDPATH) -lcrypt -lnet -lpcap
++#	LDLIBS   = $(LDPATH) $(LIBC)
++#	LDLIBS-static  = $(LDPATH) $(SLIBC)
++#	CXXLIBS  = $(LDPATH) $(LIBSTDCPP) $(LIBIOSTREAM) $(LIBIO) $(LIBIBERTY) \
++#			$(LIBC) $(LIBGCC)
++	
++#	FLTFLAGS :=
++#	export FLTFLAGS
++
++	# for anyone still using it
++#	CONVERT = /bin/true
++
++	UCLINUX_BUILD_SET=1
++endif
++
++############################################################################
++#
++# fall through,  do other config options perhaps
++#
++
++ifeq ($(UCLINUX_BUILD_SET),1)
++endif
++
++############################################################################
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/config.linux-2.0.x uClinux-dist/vendors/Marvell/Firefox/config.linux-2.0.x
+--- uClinux-dist.orig/vendors/Marvell/Firefox/config.linux-2.0.x	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/config.linux-2.0.x	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,154 @@
++#
++# Automatically generated make config: don't edit
++#
++CONFIG_ARM=y
++CONFIG_UCLINUX=y
++MAGIC_ROM_PTR=y
++
++#
++# Code maturity level options
++#
++CONFIG_EXPERIMENTAL=y
++
++#
++# Loadable module support
++#
++# CONFIG_MODULES is not set
++
++#
++# General setup
++#
++# CONFIG_ARCH_TRIO is not set
++CONFIG_ARCH_AT91=y
++# CONFIG_ARCH_NETARM is not set
++# CONFIG_ARCH_ARC is not set
++# CONFIG_ARCH_A5K is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_NEXUSPCI is not set
++# CONFIG_ARCH_ACORN is not set
++# CONFIG_PCI is not set
++CONFIG_ARCH_ATMEL=y
++CONFIG_CPU_ARM7=y
++CONFIG_ARM_CLK=32768000
++DRAM_BASE=02000000
++DRAM_SIZE=00100000
++FLASH_MEM_BASE=01000000
++FLASH_SIZE=00100000
++# CONFIG_EBI is not set
++# CONFIG_ARCH_ATMEL_EB55 is not set
++# CONFIG_WILL_BOOT_FROM_FLASH is not set
++# CONFIG_FRAME_POINTER is not set
++CONFIG_BINUTILS_NEW=y
++# CONFIG_DEBUG_ERRORS is not set
++CONFIG_NET=y
++# CONFIG_SYSVIPC is not set
++CONFIG_REDUCED_MEMORY=y
++CONFIG_BINFMT_FLAT=y
++CONFIG_KERNEL_ELF=y
++# CONFIG_BINFMT_JAVA is not set
++
++#
++# Floppy, IDE, and other block devices
++#
++CONFIG_BLK_DEV_BLKMEM=y
++# CONFIG_BLK_DEV_IDE is not set
++
++#
++# Additional Block/FLASH Devices
++#
++# CONFIG_BLK_DEV_LOOP is not set
++# CONFIG_BLK_DEV_MD is not set
++CONFIG_BLK_DEV_RAM=y
++# CONFIG_RD_RELEASE_BLOCKS is not set
++# CONFIG_BLK_DEV_INITRD is not set
++# CONFIG_DEV_FLASH is not set
++
++#
++# Character devices
++#
++CONFIG_SERIAL_ATMEL=y
++# CONFIG_CONSOLE_ON_ATMEL is not set
++# CONFIG_SWAP_ATMEL_PORTS is not set
++USART0_BASE=FFFD0000
++USART1_BASE=FFFCC000
++# CONFIG_SC28L91 is not set
++# CONFIG_SERIAL_ATMEL_BT is not set
++# CONFIG_LED_ATMEL is not set
++
++#
++# Networking options
++#
++# CONFIG_FIREWALL is not set
++# CONFIG_NET_ALIAS is not set
++CONFIG_INET=y
++CONFIG_IP_FORWARD=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_IP_ACCT is not set
++CONFIG_IP_ROUTER=y
++# CONFIG_NET_IPIP is not set
++
++#
++# (it is safe to leave these untouched)
++#
++# CONFIG_INET_PCTCP is not set
++# CONFIG_INET_RARP is not set
++# CONFIG_NO_PATH_MTU_DISCOVERY is not set
++# CONFIG_IP_NOSR is not set
++# CONFIG_SKB_LARGE is not set
++
++#
++#  
++#
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_AX25 is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NETLINK is not set
++# CONFIG_IPSEC is not set
++
++#
++# Network device support
++#
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++CONFIG_SLIP=y
++CONFIG_SLIP_COMPRESSED=y
++# CONFIG_SLIP_SMART is not set
++# CONFIG_SLIP_MODE_SLIP6 is not set
++CONFIG_PPP=y
++
++#
++# CCP compressors for PPP are only built as modules.
++#
++# CONFIG_EQUALIZER is not set
++# CONFIG_UCCS8900 is not set
++# CONFIG_SMC9194 is not set
++# CONFIG_NE2000 is not set
++
++#
++# Filesystems
++#
++# CONFIG_QUOTA is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_EXT_FS is not set
++CONFIG_EXT2_FS=y
++# CONFIG_XIA_FS is not set
++# CONFIG_NLS is not set
++CONFIG_PROC_FS=y
++CONFIG_NFS_FS=y
++# CONFIG_ROOT_NFS is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AFFS_FS is not set
++CONFIG_ROMFS_FS=y
++# CONFIG_JFFS_FS is not set
++# CONFIG_UFS_FS is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PROFILE is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/config.linux-2.4.x uClinux-dist/vendors/Marvell/Firefox/config.linux-2.4.x
+--- uClinux-dist.orig/vendors/Marvell/Firefox/config.linux-2.4.x	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/config.linux-2.4.x	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,461 @@
++#
++# Automatically generated make config: don't edit
++#
++CONFIG_ARM=y
++# CONFIG_SBUS is not set
++CONFIG_UID16=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++CONFIG_UCLINUX=y
++MAGIC_ROM_PTR=y
++
++#
++# Code maturity level options
++#
++# CONFIG_EXPERIMENTAL is not set
++# CONFIG_OBSOLETE is not set
++
++#
++# Loadable module support
++#
++CONFIG_MODULES=y
++# CONFIG_MODVERSIONS is not set
++# CONFIG_KMOD is not set
++
++#
++# System Type
++#
++# CONFIG_ARCH_DSC21 is not set
++# CONFIG_ARCH_CNXT is not set
++# CONFIG_ARCH_NETARM is not set
++# CONFIG_ARCH_SWARM is not set
++# CONFIG_ARCH_SAMSUNG is not set
++# CONFIG_ARCH_ATMEL is not set
++CONFIG_ARCH_FIREFOX=y
++# CONFIG_FIREFOX_DBFF is not set
++# CONFIG_FIREFOX_RDFF is not set
++CONFIG_FIREFOX_AP22=y
++# CONFIG_CPU_BIG_ENDIAN is not set
++CONFIG_SET_MEM_PARAM=y
++DRAM_BASE=d0000000
++DRAM_SIZE=7d6000
++FLASH_MEM_BASE=ffc00000
++FLASH_SIZE=400000
++FLASH_ROMFS_BASE=ffca0000
++CONFIG_NO_PGT_CACHE=y
++CONFIG_CPU_ARM946=y
++CONFIG_CPU_32=y
++# CONFIG_CPU_26 is not set
++CONFIG_CPU_WITH_CACHE=y
++CONFIG_CPU_WITH_MCR_INSTRUCTION=y
++CONFIG_ROOT_CRAMFS_AS_IMAGE=y
++DRAM_BASE=0xd0000000
++DRAM_SIZE=0x7d6000
++# CONFIG_CPU_ARM946_CPU_IDLE is not set
++CONFIG_CPU_ARM946_I_CACHE_ON=y
++CONFIG_CPU_ARM946_D_CACHE_ON=y
++# CONFIG_CPU_ARM946_WRITETHROUGH is not set
++CONFIG_CMDLINE_BOOL=y
++CONFIG_CMDLINE="console=ttyS0,38400 root=/dev/ram0 rw"
++
++#
++# General setup
++#
++# CONFIG_HOTPLUG is not set
++# CONFIG_PCMCIA is not set
++CONFIG_NET=y
++# CONFIG_SYSVIPC is not set
++# CONFIG_REDUCED_MEMORY is not set
++# CONFIG_BSD_PROCESS_ACCT is not set
++CONFIG_SYSCTL=y
++# CONFIG_NWFPE is not set
++CONFIG_KCORE_ELF=y
++# CONFIG_KCORE_AOUT is not set
++CONFIG_BINFMT_FLAT=y
++CONFIG_KERNEL_ELF=y
++# CONFIG_ARTHUR is not set
++# CONFIG_ALIGNMENT_TRAP is not set
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++# CONFIG_NETLINK_DEV is not set
++CONFIG_NETFILTER=y
++# CONFIG_NETFILTER_DEBUG is not set
++CONFIG_FILTER=y
++CONFIG_UNIX=y
++CONFIG_INET=y
++# CONFIG_IPSEC_NAT_TRAVERSAL is not set
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++# CONFIG_IP_PNP is not set
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_INET_ECN is not set
++# CONFIG_SYN_COOKIES is not set
++
++#
++#   IP: Netfilter Configuration
++#
++CONFIG_IP_NF_CONNTRACK=y
++CONFIG_IP_NF_FTP=y
++CONFIG_IP_NF_IRC=y
++CONFIG_IP_NF_IPTABLES=y
++CONFIG_IP_NF_MATCH_LIMIT=y
++CONFIG_IP_NF_MATCH_MAC=y
++CONFIG_IP_NF_MATCH_MARK=y
++CONFIG_IP_NF_MATCH_MULTIPORT=y
++CONFIG_IP_NF_MATCH_TOS=y
++CONFIG_IP_NF_MATCH_AH_ESP=y
++CONFIG_IP_NF_MATCH_LENGTH=y
++CONFIG_IP_NF_MATCH_TTL=y
++CONFIG_IP_NF_MATCH_TCPMSS=y
++CONFIG_IP_NF_MATCH_STATE=y
++CONFIG_IP_NF_FILTER=y
++CONFIG_IP_NF_TARGET_REJECT=y
++CONFIG_IP_NF_NAT=y
++CONFIG_IP_NF_NAT_NEEDED=y
++CONFIG_IP_NF_TARGET_MASQUERADE=y
++CONFIG_IP_NF_TARGET_REDIRECT=y
++CONFIG_IP_NF_NAT_LOCAL=y
++CONFIG_IP_NF_NAT_IRC=y
++CONFIG_IP_NF_NAT_FTP=y
++CONFIG_IP_NF_MANGLE=y
++CONFIG_IP_NF_TARGET_TOS=y
++CONFIG_IP_NF_TARGET_MARK=y
++CONFIG_IP_NF_TARGET_LOG=y
++CONFIG_IP_NF_TARGET_ULOG=y
++CONFIG_IP_NF_TARGET_TCPMSS=y
++CONFIG_IP_NF_ARPTABLES=y
++CONFIG_IP_NF_ARPFILTER=y
++# CONFIG_VLAN_8021Q is not set
++
++#
++#  
++#
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++
++#
++# Appletalk devices
++#
++# CONFIG_DEV_APPLETALK is not set
++# CONFIG_DECNET is not set
++# CONFIG_BRIDGE is not set
++
++#
++# QoS and/or fair queueing
++#
++# CONFIG_NET_SCHED is not set
++# CONFIG_IPSEC is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++
++#
++# Network device support
++#
++CONFIG_NETDEVICES=y
++
++#
++# ARCnet devices
++#
++# CONFIG_ARCNET is not set
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++
++#
++# Ethernet (10 or 100Mbit)
++#
++CONFIG_NET_ETHERNET=y
++# CONFIG_ARM_AM79C961A is not set
++# CONFIG_SUNLANCE is not set
++# CONFIG_SUNBMAC is not set
++# CONFIG_SUNQE is not set
++# CONFIG_SUNGEM is not set
++# CONFIG_NET_VENDOR_3COM is not set
++# CONFIG_LANCE is not set
++# CONFIG_NET_VENDOR_SMC is not set
++# CONFIG_NET_VENDOR_RACAL is not set
++# CONFIG_NET_ISA is not set
++# CONFIG_NET_PCI is not set
++# CONFIG_NET_POCKET is not set
++# CONFIG_FEC is not set
++# CONFIG_CS89x0 is not set
++
++#
++# Ethernet (1000 Mbit)
++#
++# CONFIG_ACENIC is not set
++# CONFIG_DL2K is not set
++# CONFIG_MYRI_SBUS is not set
++# CONFIG_NS83820 is not set
++# CONFIG_HAMACHI is not set
++# CONFIG_YELLOWFIN is not set
++# CONFIG_SK98LIN is not set
++# CONFIG_TIGON3 is not set
++# CONFIG_FDDI is not set
++# CONFIG_PLIP is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++
++#
++# Wireless LAN (non-hamradio)
++#
++# CONFIG_NET_RADIO is not set
++
++#
++# Token Ring devices
++#
++# CONFIG_TR is not set
++# CONFIG_NET_FC is not set
++
++#
++# Wan interfaces
++#
++# CONFIG_WAN is not set
++
++#
++# Amateur Radio support
++#
++# CONFIG_HAMRADIO is not set
++
++#
++# IrDA (infrared) support
++#
++# CONFIG_IRDA is not set
++
++#
++# ATA/IDE/MFM/RLL support
++#
++# CONFIG_IDE is not set
++# CONFIG_BLK_DEV_IDE_MODES is not set
++# CONFIG_BLK_DEV_HD is not set
++
++#
++# SCSI support
++#
++# CONFIG_SCSI is not set
++
++#
++# ISDN subsystem
++#
++# CONFIG_ISDN is not set
++
++#
++# Parallel port support
++#
++# CONFIG_PARPORT is not set
++
++#
++# Plug and Play configuration
++#
++# CONFIG_PNP is not set
++# CONFIG_ISAPNP is not set
++
++#
++# Block devices
++#
++# CONFIG_BLK_DEV_FD is not set
++# CONFIG_BLK_DEV_XD is not set
++# CONFIG_PARIDE is not set
++# CONFIG_BLK_CPQ_DA is not set
++# CONFIG_BLK_CPQ_CISS_DA is not set
++# CONFIG_CISS_SCSI_TAPE is not set
++# CONFIG_BLK_DEV_DAC960 is not set
++# CONFIG_BLK_DEV_UMEM is not set
++# CONFIG_BLK_DEV_LOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_SIZE=2048
++CONFIG_BLK_DEV_INITRD=y
++# CONFIG_BLK_DEV_RAMDISK_DATA is not set
++# CONFIG_BLK_DEV_BLKMEM is not set
++
++#
++# File systems
++#
++# CONFIG_QUOTA is not set
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_REISERFS_CHECK is not set
++# CONFIG_REISERFS_PROC_INFO is not set
++# CONFIG_ADFS_FS is not set
++# CONFIG_ADFS_FS_RW is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_BFS_FS is not set
++CONFIG_EXT3_FS=y
++CONFIG_JBD=y
++# CONFIG_JBD_DEBUG is not set
++# CONFIG_FAT_FS is not set
++# CONFIG_MSDOS_FS is not set
++# CONFIG_UMSDOS_FS is not set
++# CONFIG_VFAT_FS is not set
++# CONFIG_EFS_FS is not set
++# CONFIG_JFFS_FS is not set
++# CONFIG_JFFS2_FS is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_TMPFS is not set
++CONFIG_RAMFS=y
++# CONFIG_ISO9660_FS is not set
++# CONFIG_JOLIET is not set
++# CONFIG_ZISOFS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_NTFS_FS is not set
++# CONFIG_NTFS_RW is not set
++# CONFIG_HPFS_FS is not set
++CONFIG_PROC_FS=y
++# CONFIG_DEVFS_FS is not set
++# CONFIG_DEVFS_MOUNT is not set
++# CONFIG_DEVFS_DEBUG is not set
++# CONFIG_DEVPTS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_QNX4FS_RW is not set
++CONFIG_ROMFS_FS=y
++CONFIG_EXT2_FS=y
++# CONFIG_SYSV_FS is not set
++# CONFIG_UDF_FS is not set
++# CONFIG_UDF_RW is not set
++# CONFIG_UFS_FS is not set
++# CONFIG_UFS_FS_WRITE is not set
++
++#
++# Network File Systems
++#
++# CONFIG_CODA_FS is not set
++# CONFIG_INTERMEZZO_FS is not set
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++# CONFIG_ROOT_NFS is not set
++# CONFIG_NFSD is not set
++# CONFIG_NFSD_V3 is not set
++CONFIG_SUNRPC=y
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++# CONFIG_SMB_FS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_NCPFS_PACKET_SIGNING is not set
++# CONFIG_NCPFS_IOCTL_LOCKING is not set
++# CONFIG_NCPFS_STRONG is not set
++# CONFIG_NCPFS_NFS_NS is not set
++# CONFIG_NCPFS_OS2_NS is not set
++# CONFIG_NCPFS_SMALLDOS is not set
++# CONFIG_NCPFS_NLS is not set
++# CONFIG_NCPFS_EXTRAS is not set
++# CONFIG_ZISOFS_FS is not set
++# CONFIG_ZLIB_FS_INFLATE is not set
++
++#
++# Partition Types
++#
++# CONFIG_PARTITION_ADVANCED is not set
++# CONFIG_SMB_NLS is not set
++# CONFIG_NLS is not set
++
++#
++# Character devices
++#
++# CONFIG_LEDMAN is not set
++# CONFIG_DS1302 is not set
++# CONFIG_VT is not set
++CONFIG_SERIAL=y
++CONFIG_SERIAL_CONSOLE=y
++# CONFIG_SERIAL_EXTENDED is not set
++# CONFIG_SERIAL_NONSTANDARD is not set
++# CONFIG_UNIX98_PTYS is not set
++
++#
++# I2C support
++#
++# CONFIG_I2C is not set
++
++#
++# Mice
++#
++# CONFIG_BUSMOUSE is not set
++# CONFIG_MOUSE is not set
++
++#
++# Joysticks
++#
++# CONFIG_INPUT_GAMEPORT is not set
++# CONFIG_INPUT_NS558 is not set
++# CONFIG_INPUT_LIGHTNING is not set
++# CONFIG_INPUT_PCIGAME is not set
++# CONFIG_INPUT_CS461X is not set
++# CONFIG_INPUT_EMU10K1 is not set
++# CONFIG_INPUT_SERIO is not set
++# CONFIG_INPUT_SERPORT is not set
++
++#
++# Joysticks
++#
++# CONFIG_INPUT_ANALOG is not set
++# CONFIG_INPUT_A3D is not set
++# CONFIG_INPUT_ADI is not set
++# CONFIG_INPUT_COBRA is not set
++# CONFIG_INPUT_GF2K is not set
++# CONFIG_INPUT_GRIP is not set
++# CONFIG_INPUT_INTERACT is not set
++# CONFIG_INPUT_TMDC is not set
++# CONFIG_INPUT_SIDEWINDER is not set
++# CONFIG_INPUT_IFORCE_USB is not set
++# CONFIG_INPUT_IFORCE_232 is not set
++# CONFIG_INPUT_WARRIOR is not set
++# CONFIG_INPUT_MAGELLAN is not set
++# CONFIG_INPUT_SPACEORB is not set
++# CONFIG_INPUT_SPACEBALL is not set
++# CONFIG_INPUT_STINGER is not set
++# CONFIG_INPUT_DB9 is not set
++# CONFIG_INPUT_GAMECON is not set
++# CONFIG_INPUT_TURBOGRAFX is not set
++# CONFIG_QIC02_TAPE is not set
++
++#
++# Watchdog Cards
++#
++# CONFIG_WATCHDOG is not set
++# CONFIG_NVRAM is not set
++# CONFIG_RTC is not set
++# CONFIG_DTLK is not set
++# CONFIG_R3964 is not set
++# CONFIG_APPLICOM is not set
++
++#
++# Ftape, the floppy tape device driver
++#
++# CONFIG_FTAPE is not set
++# CONFIG_AGP is not set
++# CONFIG_DRM is not set
++
++#
++# USB support
++#
++# CONFIG_USB is not set
++
++#
++# I2O device support
++#
++# CONFIG_I2O is not set
++# CONFIG_I2O_BLOCK is not set
++# CONFIG_I2O_LAN is not set
++# CONFIG_I2O_SCSI is not set
++# CONFIG_I2O_PROC is not set
++
++#
++# Kernel hacking
++#
++CONFIG_FRAME_POINTER=y
++# CONFIG_REVISIT is not set
++CONFIG_DEBUG_ERRORS=y
++# CONFIG_DEBUG_USER is not set
++CONFIG_DEBUG_INFO=y
++# CONFIG_MAGIC_SYSRQ is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/config.uClibc uClinux-dist/vendors/Marvell/Firefox/config.uClibc
+--- uClinux-dist.orig/vendors/Marvell/Firefox/config.uClibc	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/config.uClibc	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,193 @@
++# Library Configuration rules for uClibc
++#
++# This file contains rules which are shared between multiple Makefiles.  All
++# normal configuration options live in the file named "Config".  You probably
++# should not mess with this file unless you know what you are doing...  
++# 
++# Copyright (C) 2000 by Lineo, inc.
++# Copyright (C) 2000,2001 Erik Andersen <andersee@debian.org>
++#
++# This program is free software; you can redistribute it and/or modify it under
++# the terms of the GNU Library General Public License as published by the Free
++# Software Foundation; either version 2 of the License, or (at your option) any
++# later version.
++#
++# This program is distributed in the hope that it will be useful, but WITHOUT
++# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
++# FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more
++# details.
++#
++# You should have received a copy of the GNU Library General Public License
++# along with this program; if not, write to the Free Software Foundation, Inc.,
++# 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++#
++# Derived in part from the Linux-8086 C library, the GNU C Library, and several
++# other sundry sources.  Files within this library are copyright by their
++# respective copyright holders.
++
++NATIVE_CC = gcc
++
++# If you are running a cross compiler, you may want to set this
++# to something more interesting...  Target architecture is determined
++# by asking this compiler what arch it compiles stuff for.
++CROSS = arm-elf-
++CC = $(CROSS)gcc
++AR = $(CROSS)ar
++LD = $(CROSS)ld
++NM = $(CROSS)nm
++#STRIPTOOL = $(CROSS)strip
++STRIPTOOL = /bin/true
++
++#
++# just in case someone wants to use it
++ARCH_CFLAGS=
++
++# Set the following to `true' to make a debuggable build, and `false' for
++# production builds.
++DODEBUG = false
++
++# Compiler warnings you want to see 
++WARNINGS=-Wall
++
++# Note that the kernel source you use to compile with should be the same as the
++# Linux kernel you run your apps on.  uClibc doesn't even try to achieve binary
++# compatibility across kernel versions.  So don't expect, for example, uClibc
++# compiled with Linux kernel 2.0.x to implement lchown properly, since 2.0.x
++# can't do that. Similarly, if you compile uClibc vs Linux 2.4.x kernel headers,
++# but then run on Linux 2.0.x, lchown will be compiled into uClibc, but won't
++# work at all.  You have been warned.
++KERNEL_SOURCE=$(ROOTDIR)/linux-2.4.x
++
++# Set this to `false' if your CPU doesn't have a memory management unit (MMU).
++# Set it to `true' otherwise.
++HAS_MMU = false
++
++# Set this to `false' if you don't have/need basic floating point support
++# support in libc (strtod, printf, scanf).  Set it to `true' otherwise.
++# If this is not true, then libm will not be built.
++HAS_FLOATING_POINT = true
++
++# Set to `true' if you want the math library to contain the full set
++# of C99 math library features.  Costs an extra 35k or so on x86. 
++DO_C99_MATH = true
++
++# Set this to 'false if you don't need shadow password support.
++HAS_SHADOW = false
++
++# Set this to `false' if you don't have/need locale support; `true' otherwise.
++# NOTE: Currently does not affect collation.
++# You must also generate the locale data and associated .h file.
++# See the README in directory extra/locale for details.
++HAS_LOCALE = false
++
++# Set this to `false' if you don't have/need wide char support.
++HAS_WCHAR = false
++
++# This specifies which malloc implementation is used.
++#
++# "malloc" use mmap for all allocations and so works very well on MMU-less
++# systems that do not support the brk() system call.   It is pretty smart 
++# about reusing already allocated memory, and minimizing memory wastage.
++#
++# "malloc-930716" is derived from libc-5.3.12 and uses the brk() system call
++# for all memory allocations.  This makes it very fast.  It is also pretty
++# smart about reusing already allocated memory, and minimizing memory wastage.
++# Because this uses brk() it will not work on uClinux MMU-less systems.
++MALLOC = malloc 
++#MALLOC = malloc-930716
++
++# If you want large file support (greater then 2 GiB) turn this on.
++# Do not enable this unless your kernel provides large file support.
++DOLFS = false
++
++# Posix regular expression code is really big -- 27k all by itself.
++# If you don't use regular expressions, turn this off and save space.
++# Of course, if you only staticly link, leave this on, since it will
++# only be included in your apps if you use regular expressions. 
++INCLUDE_REGEX=true
++
++# If you want to include RPC support, enable this.  RPC is almost never used 
++# for anything except NFS support, so unless you plan to use NFS, leave this
++# disabled.  This is off by default.
++INCLUDE_RPC = true
++
++# Normally we enable just enough RPC support for things like rshd and 
++# nfs mount to work.  If you find you need the rest of the RPC stuff, 
++# then enable this.
++INCLUDE_FULL_RPC = true
++
++# If you want to include support for the next version of the Internet
++# Protocol: IP version 6, enable this.  This is off by default.
++INCLUDE_IPV6 = false
++
++# If you want to include threads support, enable this.  The C library will
++# be compiled thread-safe, and the libpthread library will be built.
++INCLUDE_THREADS = true
++
++# If you want to support only Unix 98 PTYs enable this.  Some older
++# applications may need this disabled.  For most current programs, 
++# you can generally leave this true.
++UNIX98PTY_ONLY = true
++
++# Enable this if /dev/pts is on a devpts or devfs file system.  Both
++# these filesystems automatically manage permissions on the /dev/pts 
++# devices.  You may need to mount this fs on /dev/pts for this to work. 
++# This is true by default.
++ASSUME_DEVPTS = true
++
++
++# If you want to compile the library as PIC code, turn this on.
++# This is automagically enabled when HAVE_SHARED is true
++DOPIC = false
++
++# Enable support for shared libraries?  If this is false, you can
++# ignore all the rest of the options in this file...
++HAVE_SHARED = false
++
++# uClibc has a native shared library loader for some architectures.
++BUILD_UCLIBC_LDSO=false
++
++# If you are using shared libraries, but do not want/have a native
++# uClibc shared library loader, please specify the name of your
++# system's shared library loader here...
++#SYSTEM_LDSO=/lib/ld-linux.so.2
++
++# When using shared libraries, this path is the location where the
++# shared library will be invoked.  This value will be compiled into
++# every binary compiled with uClibc.  
++#
++# BIG FAT WARNING:  
++# If you do not have a shared library loader with the correct name
++# sitting in the directory this points to, your binaries will not run.
++SHARED_LIB_LOADER_PATH=$(DEVEL_PREFIX)/lib
++
++# DEVEL_PREFIX is the directory into which the uClibc development
++# environment will be installed.   The result will look something 
++# like the following:
++#   DEVEL_PREFIX/
++#	lib/            <contains all runtime and static libs>
++#	include/        <Where all the header files go>
++# This value is used by the 'make install' Makefile target.  Since this
++# directory is compiled into the uclibc cross compiler spoofer, you
++# have to recompile if you change this value...
++DEVEL_PREFIX = /usr/$(TARGET_ARCH)-linux-uclibc
++
++# SYSTEM_DEVEL_PREFIX is the directory prefix used when installing
++# bin/arch-uclibc-gcc, bin/arch-uclibc-ld, etc.   This is only used by
++# the 'make install' target, and is not compiled into anything.  This
++# defaults to $DEVEL_PREFIX/usr, but makers of .rpms and .debs will
++# want to set this to "/usr" instead.
++SYSTEM_DEVEL_PREFIX = $(DEVEL_PREFIX)
++
++# DEVEL_TOOL_PREFIX is the directory prefix used when installing
++# bin/gcc, bin/ld, etc.   This is only used by the 'make install'
++# target, and is not compiled into anything.  This defaults to
++# $DEVEL_PREFIX/usr, but makers of .rpms and .debs may want to
++# set this to something else.
++DEVEL_TOOL_PREFIX = $(DEVEL_PREFIX)/usr
++
++# If you want 'make install' to install everything under a temporary
++# directory, the define PREFIX during the install step,
++# i.e., 'make PREFIX=/var/tmp/uClibc install'.
++#PREFIX = $(TOPDIR)/_install
++
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/config.vendor uClinux-dist/vendors/Marvell/Firefox/config.vendor
+--- uClinux-dist.orig/vendors/Marvell/Firefox/config.vendor	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/config.vendor	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,446 @@
++#
++# Automatically generated make config: don't edit
++#
++
++#
++# Core Applications
++#
++CONFIG_USER_INIT_INIT=y
++CONFIG_USER_INIT_CONSOLE_SH=y
++# CONFIG_USER_INIT_RUN_FIREWALL is not set
++CONFIG_USER_SASH_SH=y
++# CONFIG_USER_SH_SH is not set
++# CONFIG_USER_NWSH_SH is not set
++# CONFIG_USER_BASH_BASH is not set
++# CONFIG_USER_OTHER_SH is not set
++# CONFIG_USER_SASH_HISTORY is not set
++CONFIG_USER_SASH_REBOOT=y
++# CONFIG_USER_SASH_SHUTDOWN is not set
++CONFIG_USER_INIT_EXPAND=y
++# CONFIG_USER_INIT_EXPAND_NOZEROES is not set
++# CONFIG_USER_VERSION_VERSION is not set
++CONFIG_USER_LOGIN_LOGIN=y
++# CONFIG_USER_AGETTY_AGETTY is not set
++# CONFIG_USER_GETTYD_GETTYD is not set
++# CONFIG_USER_LOGIN_PASSWD is not set
++# CONFIG_USER_CRON_CRON is not set
++
++#
++# Flash Tools
++#
++# CONFIG_USER_FLASHW_FLASHW is not set
++# CONFIG_USER_NETFLASH_NETFLASH is not set
++# CONFIG_USER_RECOVER_RECOVER is not set
++# CONFIG_USER_BOOTTOOLS_FLASHLOADER is not set
++# CONFIG_USER_BOOTTOOLS_HIMEMLOADER is not set
++
++#
++# MTD utils
++#
++# CONFIG_USER_MTDUTILS is not set
++# CONFIG_USER_MTDUTILS_ERASE is not set
++# CONFIG_USER_MTDUTILS_ERASEALL is not set
++# CONFIG_USER_MTDUTILS_FTL_CHECK is not set
++# CONFIG_USER_MTDUTILS_FTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NFTLDUMP is not set
++# CONFIG_USER_MTDUTILS_NFTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NANDDUMP is not set
++# CONFIG_USER_MTDUTILS_NANDTEST is not set
++# CONFIG_USER_MTDUTILS_NANDWRITE is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADBIOS is not set
++
++#
++# Real Time Clock
++#
++# CONFIG_USER_HWCLOCK_HWCLOCK is not set
++# CONFIG_USER_RTC_M41T11 is not set
++# CONFIG_USER_RTC_DS1302 is not set
++
++#
++# Vixie-cron
++#
++# CONFIG_USER_VIXIECRON_CRON is not set
++# CONFIG_USER_VIXIECRON_CRONTAB is not set
++
++#
++# at
++#
++# CONFIG_USER_AT_AT is not set
++# CONFIG_USER_AT_ATD is not set
++# CONFIG_USER_AT_ATRUN is not set
++
++#
++# Force library building (Normally built when required)
++#
++# CONFIG_LIB_LIBDES_FORCE is not set
++# CONFIG_LIB_LIBSSL_FORCE is not set
++# CONFIG_LIB_LIBGMP_FORCE is not set
++# CONFIG_LIB_LIBG_FORCE is not set
++# CONFIG_LIB_LIBPAM_FORCE is not set
++# CONFIG_LIB_LIBPCAP_FORCE is not set
++# CONFIG_LIB_ZLIB_FORCE is not set
++# CONFIG_LIB_LIBATM_FORCE is not set
++# CONFIG_LIB_LIBPNG_FORCE is not set
++# CONFIG_LIB_LIBJPEG_FORCE is not set
++# CONFIG_LIB_NCURSES_FORCE is not set
++# CONFIG_LIB_UC_LIBC_TIMEZONE is not set
++
++#
++# Filesystem Applications
++#
++# CONFIG_USER_FLATFSD_FLATFSD is not set
++# CONFIG_USER_FLATFSD_USE_FLASH_FS is not set
++# CONFIG_USER_MOUNT_MOUNT is not set
++# CONFIG_USER_MOUNT_UMOUNT is not set
++# CONFIG_USER_FDISK_FDISK is not set
++
++#
++# EXT2
++#
++# CONFIG_USER_E2FSPROGS_E2FSCK_E2FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_BADBLOCKS is not set
++# CONFIG_USER_E2FSPROGS_MISC_CHATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_DUMPE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_E2LABEL is not set
++# CONFIG_USER_E2FSPROGS_MISC_FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_LSATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKLOST_FOUND is not set
++# CONFIG_USER_E2FSPROGS_MISC_TUNE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_UUIDGEN is not set
++
++#
++# RESIERFS
++#
++# CONFIG_USER_REISERFSPROGS is not set
++# CONFIG_USER_REISERFSPROGS_DEBUGRESIERFS is not set
++# CONFIG_USER_REISERFSPROGS_MKREISERFS is not set
++# CONFIG_USER_REISERFSPROGS_REISERFSCK is not set
++# CONFIG_USER_REISERFSPROGS_RESIZE_REISERFS is not set
++# CONFIG_USER_REISERFSPROGS_UNPACK is not set
++
++#
++# SAMBA
++#
++# CONFIG_USER_SAMBA is not set
++# CONFIG_USER_SAMBA_SMBD is not set
++# CONFIG_USER_SAMBA_NMBD is not set
++# CONFIG_USER_SAMBA_SMBMOUNT is not set
++# CONFIG_USER_SAMBA_SMBUMOUNT is not set
++
++#
++# SMBFS
++#
++# CONFIG_USER_SMBMOUNT_SMBMOUNT is not set
++# CONFIG_USER_SMBMOUNT_SMBUMOUNT is not set
++# CONFIG_USER_CRAMFS_CRAMFSCK is not set
++# CONFIG_USER_CRAMFS_MKCRAMFS is not set
++
++#
++# Network Applications
++#
++# CONFIG_USER_ROUTE_ARP is not set
++CONFIG_USER_BOA_SRC_BOA=y
++# CONFIG_USER_BOA_WITH_SSL is not set
++# CONFIG_USER_BPALOGIN_BPALOGIN is not set
++# CONFIG_USER_BR2684CTL_BR2684CTL is not set
++# CONFIG_USER_BRCFG_BRCFG is not set
++# CONFIG_USER_CERBERIAN_CERBERIAN is not set
++# CONFIG_USER_CERBERIAN_CERBLITE is not set
++# CONFIG_USER_CERBERIAN_MYLITE is not set
++# CONFIG_USER_CERBERIAN_CERBTEST is not set
++# CONFIG_USER_DHCPCD_DHCPCD is not set
++CONFIG_USER_DHCPCD_NEW_DHCPCD=y
++# CONFIG_USER_DHCPD_DHCPD is not set
++# CONFIG_USER_DHCP_ISC_SERVER_DHCPD is not set
++# CONFIG_USER_DHCP_ISC_CLIENT_DHCP is not set
++# CONFIG_USER_DIALD_DIALD is not set
++# CONFIG_USER_DISCARD_DISCARD is not set
++# CONFIG_USER_DNSMASQ_DNSMASQ is not set
++# CONFIG_USER_ETHATTACH_ETHATTACH is not set
++# CONFIG_USER_EZIPUPDATE_EZIPUPDATE is not set
++# CONFIG_USER_FTP_FTP_FTP is not set
++# CONFIG_USER_FREESWAN is not set
++# CONFIG_USER_HTTPD_HTTPD is not set
++# CONFIG_USER_IDB_IDB is not set
++# CONFIG_USER_IFATTACH_IFATTACH is not set
++CONFIG_USER_ROUTE_IFCONFIG=y
++# CONFIG_USER_IFMOND_IFMOND is not set
++# CONFIG_USER_NEWIFMOND_IFMOND is not set
++CONFIG_USER_INETD_INETD=y
++# CONFIG_USER_IPCHAINS_IPCHAINS is not set
++# CONFIG_USER_IPFWADM_IPFWADM is not set
++# CONFIG_USER_IPMASQADM_IPMASQADM is not set
++# CONFIG_USER_IPPORTFW_IPPORTFW is not set
++# CONFIG_USER_IPREDIR_IPREDIR is not set
++# CONFIG_USER_IPROUTE2 is not set
++# CONFIG_USER_IPTABLES_IPTABLES is not set
++# CONFIG_USER_KLAXON_KLAXON is not set
++# CONFIG_USER_SMTP_SMTPCLIENT is not set
++# CONFIG_USER_MAIL_MAIL_IP is not set
++# CONFIG_USER_MARADNS_MARADNS is not set
++# CONFIG_USER_MINI_HTTPD_MINI_HTTPD is not set
++# CONFIG_USER_L2TPD_L2TPD is not set
++# CONFIG_USER_LOATTACH_LOATTACH is not set
++# CONFIG_USER_MSNTP_MSNTP is not set
++# CONFIG_USER_ROUTE_NETSTAT is not set
++# CONFIG_USER_NETSTAT_NAT_NETSTAT_NAT is not set
++# CONFIG_USER_MARADNS_ZONESERVER is not set
++# CONFIG_USER_ROUTE_MIITOOL is not set
++CONFIG_USER_PING_PING=y
++# CONFIG_USER_PLUG_PLUG is not set
++# CONFIG_USER_PORTMAP_PORTMAP is not set
++# CONFIG_USER_PPPD_PPPD_PPPD is not set
++# CONFIG_USER_PPTPD_PPTPCTRL is not set
++# CONFIG_USER_PPTPD_PPTPD is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP_CALLMGR is not set
++# CONFIG_USER_RDATE_RDATE is not set
++# CONFIG_USER_MGMT_MGMT is not set
++# CONFIG_USER_SGSNMPD_AGENT is not set
++# CONFIG_USER_SGSNMPD_SNAPGEAR is not set
++# CONFIG_USER_SGSNMPD_SG100 is not set
++# CONFIG_USER_REDIALER_REDIALER is not set
++CONFIG_USER_ROUTE_ROUTE=y
++# CONFIG_USER_ROUTED_ROUTED is not set
++# CONFIG_USER_RP_PPPOE_PPPOE is not set
++# CONFIG_USER_SETHDLC_SETHDLC is not set
++# CONFIG_USER_SLATTACH_SLATTACH is not set
++# CONFIG_USER_SNMPD_SNMPD is not set
++# CONFIG_USER_SNORT_SNORT is not set
++# CONFIG_USER_STUNNEL_STUNNEL is not set
++# CONFIG_USER_SQUID_SQUID is not set
++# CONFIG_USER_SSH_SSH is not set
++# CONFIG_USER_SSH_SSHD is not set
++# CONFIG_USER_SSH_SSHKEYGEN is not set
++# CONFIG_USER_STP_STP is not set
++# CONFIG_USER_TCPWRAP_TCPD is not set
++# CONFIG_USER_TCPBLAST_TCPBLAST is not set
++# CONFIG_USER_TCPDUMP_TCPDUMP is not set
++CONFIG_USER_TELNETD_TELNETD=y
++# CONFIG_USER_TELNET_TELNET is not set
++# CONFIG_USER_TFTP_TFTP is not set
++# CONFIG_USER_TFTPD_TFTPD is not set
++# CONFIG_USER_THTTPD_THTTPD is not set
++# CONFIG_USER_TRACEROUTE_TRACEROUTE is not set
++# CONFIG_USER_UCDSNMP_SNMPD is not set
++# CONFIG_USER_UPNPD is not set
++# CONFIG_USER_VPNLED_VPNLED is not set
++# CONFIG_USER_WGET is not set
++# CONFIG_USER_WINSD_WS is not set
++# CONFIG_USER_ZEBRA_ZEBRA_ZEBRA is not set
++
++#
++# Net-tools
++#
++# CONFIG_USER_NET_TOOLS_ARP is not set
++# CONFIG_USER_NET_TOOLS_HOSTNAME is not set
++# CONFIG_USER_NET_TOOLS_IFCONFIG is not set
++# CONFIG_USER_NET_TOOLS_NAMEIF is not set
++# CONFIG_USER_NET_TOOLS_NETSTAT is not set
++# CONFIG_USER_NET_TOOLS_PLIPCONFIG is not set
++# CONFIG_USER_NET_TOOLS_RARP is not set
++# CONFIG_USER_NET_TOOLS_ROUTE is not set
++# CONFIG_USER_NET_TOOLS_SLATTACH is not set
++# CONFIG_USER_NET_TOOLS_MII_TOOL is not set
++
++#
++# Wireless-tools
++#
++# CONFIG_USER_WIRELESS_TOOLS is not set
++
++#
++# Miscellaneous Applications
++#
++# CONFIG_USER_LANG_A60 is not set
++# CONFIG_USER_CAL_CAL is not set
++# CONFIG_USER_CHAT_CHAT is not set
++# CONFIG_USER_CKSUM_CKSUM is not set
++# CONFIG_USER_CLOCK_CLOCK is not set
++# CONFIG_USER_CPU_CPU is not set
++# CONFIG_USER_CAL_DATE is not set
++# CONFIG_USER_DESTEST_DESTEST is not set
++# CONFIG_USER_DESTEST_DESPERF is not set
++# CONFIG_USER_DHRYSTONE_DHRYSTONE is not set
++# CONFIG_USER_FACTORY_FACTTEST is not set
++# CONFIG_USER_FROB_LED_FROB_LED is not set
++# CONFIG_USER_GDBSERVER_GDBREPLAY is not set
++CONFIG_USER_GDBSERVER_GDBSERVER=y
++# CONFIG_USER_HD_HD is not set
++# CONFIG_USER_LCD_LCD is not set
++# CONFIG_USER_LEDCON_LEDCON is not set
++# CONFIG_USER_LILO_LILO is not set
++# CONFIG_USER_LISSA_LISSA is not set
++# CONFIG_USER_MATH_TEST is not set
++# CONFIG_USER_MAWK_AWK is not set
++# CONFIG_USER_NULL_NULL is not set
++# CONFIG_USER_PALMBOT_PALMBOT is not set
++# CONFIG_USER_PCMCIA_CS is not set
++# CONFIG_USER_PERL_PERL is not set
++# CONFIG_USER_PYTHON_PYTHON is not set
++# CONFIG_USER_READPROFILE_READPROFILE is not set
++# CONFIG_USER_ROOTLOADER_ROOTLOADER is not set
++# CONFIG_USER_SETSERIAL_SETSERIAL is not set
++# CONFIG_USER_TRIPWIRE_SIGGEN is not set
++# CONFIG_USER_STRACE_STRACE is not set
++# CONFIG_USER_STTY_STTY is not set
++# CONFIG_USER_TCSH_TCSH is not set
++# CONFIG_USER_THREADDEMOS_THREADDEMOS is not set
++# CONFIG_USER_TIP_TIP is not set
++# CONFIG_USER_TRIPWIRE_TRIPWIRE is not set
++
++#
++# LIRC
++#
++# CONFIG_USER_LIRC is not set
++# CONFIG_USER_LIRC_LIRCD is not set
++# CONFIG_USER_LIRC_IRRECORD is not set
++# CONFIG_USER_LIRC_LIRCMD is not set
++# CONFIG_USER_LIRC_IREXEC is not set
++# CONFIG_USER_LIRC_IRW is not set
++# CONFIG_USER_LIRC_MODE2 is not set
++
++#
++# Editors
++#
++# CONFIG_USER_LEVEE_VI is not set
++# CONFIG_USER_ELVISTINY_VI is not set
++
++#
++# Audio tools
++#
++# CONFIG_USER_MP3PLAY_MP3PLAY is not set
++# CONFIG_USER_OGGPLAY_OGG123 is not set
++# CONFIG_USER_OGGPLAY_EXAMPLE is not set
++# CONFIG_USER_SETKEY_SETKEY is not set
++# CONFIG_USER_MUSICBOX_MUSICBOX is not set
++# CONFIG_USER_PLAY_PLAY is not set
++# CONFIG_USER_PLAY_TONE is not set
++# CONFIG_USER_VPLAY_VPLAY is not set
++# CONFIG_USER_VPLAY_VREC is not set
++# CONFIG_USER_VPLAY_MIXER is not set
++# CONFIG_USER_PLAYRT_PLAYRT is not set
++# CONFIG_USER_W3CAM_VIDCAT is not set
++# CONFIG_USER_W3CAM_W3CAMD is not set
++
++#
++# Fileutils tools
++#
++# CONFIG_USER_FILEUTILS_CAT is not set
++# CONFIG_USER_FILEUTILS_CHGRP is not set
++# CONFIG_USER_FILEUTILS_CHMOD is not set
++# CONFIG_USER_FILEUTILS_CHOWN is not set
++# CONFIG_USER_FILEUTILS_CMP is not set
++# CONFIG_USER_FILEUTILS_CP is not set
++# CONFIG_USER_FILEUTILS_DD is not set
++# CONFIG_USER_FILEUTILS_GREP is not set
++# CONFIG_USER_FILEUTILS_L is not set
++# CONFIG_USER_FILEUTILS_LN is not set
++# CONFIG_USER_FILEUTILS_LS is not set
++# CONFIG_USER_FILEUTILS_MKDIR is not set
++# CONFIG_USER_FILEUTILS_MKFIFO is not set
++# CONFIG_USER_FILEUTILS_MKNOD is not set
++# CONFIG_USER_FILEUTILS_MORE is not set
++# CONFIG_USER_FILEUTILS_MV is not set
++# CONFIG_USER_FILEUTILS_RM is not set
++# CONFIG_USER_FILEUTILS_RMDIR is not set
++# CONFIG_USER_FILEUTILS_SYNC is not set
++# CONFIG_USER_FILEUTILS_TOUCH is not set
++
++#
++# Shutils tools
++#
++# CONFIG_USER_SHUTILS_BASENAME is not set
++# CONFIG_USER_SHUTILS_DATE is not set
++# CONFIG_USER_SHUTILS_DIRNAME is not set
++# CONFIG_USER_SHUTILS_ECHO is not set
++# CONFIG_USER_SHUTILS_FALSE is not set
++# CONFIG_USER_SHUTILS_LOGNAME is not set
++# CONFIG_USER_SHUTILS_PRINTENV is not set
++# CONFIG_USER_SHUTILS_PWD is not set
++# CONFIG_USER_SHUTILS_TRUE is not set
++# CONFIG_USER_SHUTILS_UNAME is not set
++# CONFIG_USER_SHUTILS_WHICH is not set
++# CONFIG_USER_SHUTILS_WHOAMI is not set
++# CONFIG_USER_SHUTILS_YES is not set
++
++#
++# Sysutils tools
++#
++# CONFIG_USER_SYSUTILS_REBOOT is not set
++# CONFIG_USER_SYSUTILS_SHUTDOWN is not set
++# CONFIG_USER_SYSUTILS_DF is not set
++# CONFIG_USER_SYSUTILS_FREE is not set
++# CONFIG_USER_SYSUTILS_HOSTNAME is not set
++# CONFIG_USER_SYSUTILS_KILL is not set
++# CONFIG_USER_SYSUTILS_PS is not set
++
++#
++# Procps tools
++#
++# CONFIG_USER_PROCPS_FREE is not set
++# CONFIG_USER_PROCPS_KILL is not set
++# CONFIG_USER_PROCPS_PGREP is not set
++# CONFIG_USER_PROCPS_PKILL is not set
++# CONFIG_USER_PROCPS_PS is not set
++# CONFIG_USER_PROCPS_SNICE is not set
++# CONFIG_USER_PROCPS_SYSCTL is not set
++# CONFIG_USER_PROCPS_TLOAD is not set
++# CONFIG_USER_PROCPS_TOP is not set
++# CONFIG_USER_PROCPS_UPTIME is not set
++# CONFIG_USER_PROCPS_VMSTAT is not set
++# CONFIG_USER_PROCPS_W is not set
++# CONFIG_USER_PROCPS_WATCH is not set
++
++#
++# PCI utilities
++#
++# CONFIG_USER_PCIUTILS_LSPCI is not set
++# CONFIG_USER_PCIUTILS_SETPCI is not set
++
++#
++# BusyBox
++#
++# CONFIG_USER_BUSYBOX_BUSYBOX is not set
++
++#
++# Tinylogin
++#
++# CONFIG_USER_TINYLOGIN_TINYLOGIN is not set
++
++#
++# MicroWindows
++#
++# CONFIG_USER_MICROWIN is not set
++
++#
++# Games
++#
++# CONFIG_USER_GAMES_ADVENT4 is not set
++# CONFIG_USER_GAMES_DUNGEON is not set
++# CONFIG_USER_GAMES_XMAME is not set
++
++#
++# Miscellaneous Configuration
++#
++# CONFIG_USER_RAMIMAGE_NONE is not set
++# CONFIG_USER_RAMIMAGE_RAMFS64 is not set
++CONFIG_USER_RAMIMAGE_RAMFS128=y
++# CONFIG_USER_RAMIMAGE_RAMFS256 is not set
++# CONFIG_USER_CGI_GENERIC is not set
++# CONFIG_USER_CGI is not set
++# CONFIG_USER_CGI_DISKTEL is not set
++# CONFIG_USER_NEWCGI is not set
++# CONFIG_USER_FIREWALL_TOOLS is not set
++
++#
++# Debug Builds
++#
++# CONFIG_LIB_DEBUG is not set
++# CONFIG_USER_DEBUG is not set
++
++#
++# Debug tools
++#
++# CONFIG_USER_PROTECT is not set
++# CONFIG_USER_TIMEPEG_TPT is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/config.vendor-2.4.x uClinux-dist/vendors/Marvell/Firefox/config.vendor-2.4.x
+--- uClinux-dist.orig/vendors/Marvell/Firefox/config.vendor-2.4.x	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/config.vendor-2.4.x	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,578 @@
++#
++# Automatically generated make config: don't edit
++#
++
++#
++# Core Applications
++#
++CONFIG_USER_INIT_INIT=y
++CONFIG_USER_INIT_CONSOLE_SH=y
++# CONFIG_USER_INIT_RUN_FIREWALL is not set
++CONFIG_USER_SASH_SH=y
++# CONFIG_USER_SH_SH is not set
++# CONFIG_USER_NWSH_SH is not set
++# CONFIG_USER_BASH_BASH is not set
++# CONFIG_USER_OTHER_SH is not set
++CONFIG_USER_SASH_HISTORY=y
++# CONFIG_USER_SASH_REBOOT is not set
++# CONFIG_USER_SASH_SHUTDOWN is not set
++CONFIG_USER_INIT_EXPAND=y
++# CONFIG_USER_INIT_EXPAND_NOZEROES is not set
++# CONFIG_USER_VERSION_VERSION is not set
++# CONFIG_USER_LOGIN_LOGIN is not set
++# CONFIG_USER_AGETTY_AGETTY is not set
++# CONFIG_USER_GETTYD_GETTYD is not set
++# CONFIG_USER_LOGIN_PASSWD is not set
++# CONFIG_USER_CRON_CRON is not set
++
++#
++# Real Time Clock
++#
++# CONFIG_USER_HWCLOCK_HWCLOCK is not set
++# CONFIG_USER_RTC_M41T11 is not set
++# CONFIG_USER_RTC_DS1302 is not set
++
++#
++# Vixie-cron
++#
++# CONFIG_USER_VIXIECRON_CRON is not set
++# CONFIG_USER_VIXIECRON_CRONTAB is not set
++
++#
++# at
++#
++# CONFIG_USER_AT_AT is not set
++# CONFIG_USER_AT_ATD is not set
++# CONFIG_USER_AT_ATRUN is not set
++
++#
++# Library Configuration
++#
++
++#
++# Force build (Normally built when required)
++#
++# CONFIG_LIB_LIBDES_FORCE is not set
++# CONFIG_LIB_LIBSSL_FORCE is not set
++# CONFIG_LIB_LIBGMP_FORCE is not set
++# CONFIG_LIB_LIBG_FORCE is not set
++# CONFIG_LIB_LIBPAM_FORCE is not set
++CONFIG_LIB_LIBPCAP_FORCE=y
++# CONFIG_LIB_ZLIB_FORCE is not set
++# CONFIG_LIB_LIBATM_FORCE is not set
++# CONFIG_LIB_LIBPNG_FORCE is not set
++# CONFIG_LIB_LIBJPEG_FORCE is not set
++# CONFIG_LIB_NCURSES_FORCE is not set
++
++#
++# Library Configuration
++#
++# CONFIG_LIB_UC_LIBC_TIMEZONE is not set
++
++#
++# Flash Tools
++#
++# CONFIG_USER_FLASHW_FLASHW is not set
++# CONFIG_USER_NETFLASH_NETFLASH is not set
++# CONFIG_USER_RECOVER_RECOVER is not set
++# CONFIG_USER_BOOTTOOLS_FLASHLOADER is not set
++# CONFIG_USER_BOOTTOOLS_HIMEMLOADER is not set
++
++#
++# MTD utils
++#
++# CONFIG_USER_MTDUTILS is not set
++# CONFIG_USER_MTDUTILS_ERASE is not set
++# CONFIG_USER_MTDUTILS_ERASEALL is not set
++# CONFIG_USER_MTDUTILS_FTL_CHECK is not set
++# CONFIG_USER_MTDUTILS_FTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_MKFSJFFS is not set
++# CONFIG_USER_MTDUTILS_MKFSJFFS2 is not set
++# CONFIG_USER_MTDUTILS_NFTLDUMP is not set
++# CONFIG_USER_MTDUTILS_NFTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NANDDUMP is not set
++# CONFIG_USER_MTDUTILS_NANDTEST is not set
++# CONFIG_USER_MTDUTILS_NANDWRITE is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADBIOS is not set
++
++#
++# Filesystem Applications
++#
++# CONFIG_USER_FLATFSD_FLATFSD is not set
++# CONFIG_USER_MOUNT_MOUNT is not set
++# CONFIG_USER_MOUNT_UMOUNT is not set
++# CONFIG_USER_FDISK_FDISK is not set
++
++#
++# EXT2
++#
++# CONFIG_USER_E2FSPROGS_E2FSCK_E2FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_BADBLOCKS is not set
++# CONFIG_USER_E2FSPROGS_MISC_CHATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_DUMPE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_E2LABEL is not set
++# CONFIG_USER_E2FSPROGS_MISC_FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_LSATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKLOST_FOUND is not set
++# CONFIG_USER_E2FSPROGS_MISC_TUNE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_UUIDGEN is not set
++
++#
++# RESIERFS
++#
++# CONFIG_USER_REISERFSPROGS is not set
++# CONFIG_USER_REISERFSPROGS_DEBUGRESIERFS is not set
++# CONFIG_USER_REISERFSPROGS_MKREISERFS is not set
++# CONFIG_USER_REISERFSPROGS_REISERFSCK is not set
++# CONFIG_USER_REISERFSPROGS_RESIZE_REISERFS is not set
++# CONFIG_USER_REISERFSPROGS_UNPACK is not set
++
++#
++# SAMBA
++#
++# CONFIG_USER_SAMBA is not set
++# CONFIG_USER_SAMBA_SMBD is not set
++# CONFIG_USER_SAMBA_NMBD is not set
++# CONFIG_USER_SAMBA_SMBMOUNT is not set
++# CONFIG_USER_SAMBA_SMBUMOUNT is not set
++
++#
++# SMBFS
++#
++# CONFIG_USER_SMBMOUNT_SMBMOUNT is not set
++# CONFIG_USER_SMBMOUNT_SMBUMOUNT is not set
++
++#
++# CRAMFS
++#
++# CONFIG_USER_CRAMFS_CRAMFSCK is not set
++# CONFIG_USER_CRAMFS_MKCRAMFS is not set
++
++#
++# Network Applications
++#
++CONFIG_USER_ROUTE_ARP=y
++CONFIG_USER_BOA_SRC_BOA=y
++# CONFIG_USER_BOA_WITH_SSL is not set
++# CONFIG_USER_BPALOGIN_BPALOGIN is not set
++# CONFIG_USER_BR2684CTL_BR2684CTL is not set
++# CONFIG_USER_BRCFG_BRCFG is not set
++# CONFIG_USER_DHCPCD_DHCPCD is not set
++CONFIG_USER_DHCPCD_NEW_DHCPCD=y
++# CONFIG_USER_DHCPD_DHCPD is not set
++CONFIG_USER_DHCP_ISC_SERVER_DHCPD=y
++# CONFIG_USER_DHCP_ISC_CLIENT_DHCP is not set
++# CONFIG_USER_DIALD_DIALD is not set
++# CONFIG_USER_DISCARD_DISCARD is not set
++CONFIG_USER_DNSMASQ_DNSMASQ=y
++# CONFIG_USER_ETHATTACH_ETHATTACH is not set
++# CONFIG_USER_EZIPUPDATE_EZIPUPDATE is not set
++# CONFIG_USER_FTP_FTP_FTP is not set
++# CONFIG_USER_FREESWAN is not set
++# CONFIG_USER_HTTPD_HTTPD is not set
++# CONFIG_USER_IDB_IDB is not set
++# CONFIG_USER_IFATTACH_IFATTACH is not set
++# CONFIG_USER_ROUTE_IFCONFIG is not set
++CONFIG_USER_INETD_INETD=y
++# CONFIG_USER_IPCHAINS_IPCHAINS is not set
++# CONFIG_USER_IPFWADM_IPFWADM is not set
++# CONFIG_USER_IPMASQADM_IPMASQADM is not set
++# CONFIG_USER_IPPORTFW_IPPORTFW is not set
++# CONFIG_USER_IPREDIR_IPREDIR is not set
++# CONFIG_USER_IPROUTE2 is not set
++CONFIG_USER_IPTABLES_IPTABLES=y
++# CONFIG_USER_KLAXON_KLAXON is not set
++# CONFIG_USER_L2TPD_L2TPD is not set
++# CONFIG_USER_LOATTACH_LOATTACH is not set
++# CONFIG_USER_SMTP_SMTPCLIENT is not set
++# CONFIG_USER_MAIL_MAIL_IP is not set
++# CONFIG_USER_MINI_HTTPD_MINI_HTTPD is not set
++# CONFIG_USER_MSNTP_MSNTP is not set
++# CONFIG_USER_ROUTE_NETSTAT is not set
++# CONFIG_USER_NETSTAT_NAT_NETSTAT_NAT is not set
++# CONFIG_USER_ROUTE_MIITOOL is not set
++# CONFIG_USER_PING_PING is not set
++# CONFIG_USER_PLUG_PLUG is not set
++# CONFIG_USER_PORTMAP_PORTMAP is not set
++# CONFIG_USER_PPPD_PPPD_PPPD is not set
++# CONFIG_USER_PPTPD_PPTPCTRL is not set
++# CONFIG_USER_PPTPD_PPTPD is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP_CALLMGR is not set
++# CONFIG_USER_RDATE_RDATE is not set
++# CONFIG_USER_ROUTE_ROUTE is not set
++# CONFIG_USER_ROUTED_ROUTED is not set
++# CONFIG_USER_RP_PPPOE_PPPOE is not set
++# CONFIG_USER_SETHDLC_SETHDLC is not set
++# CONFIG_USER_SLATTACH_SLATTACH is not set
++# CONFIG_USER_SNMPD_SNMPD is not set
++# CONFIG_USER_STUNNEL_STUNNEL is not set
++# CONFIG_USER_SQUID_SQUID is not set
++# CONFIG_USER_SSH_SSH is not set
++# CONFIG_USER_SSH_SSHD is not set
++# CONFIG_USER_SSH_SSHKEYGEN is not set
++# CONFIG_USER_STP_STP is not set
++# CONFIG_USER_TCPWRAP_TCPD is not set
++# CONFIG_USER_TCPBLAST_TCPBLAST is not set
++# CONFIG_USER_TCPDUMP_TCPDUMP is not set
++CONFIG_USER_TELNETD_TELNETD=y
++# CONFIG_USER_TELNET_TELNET is not set
++# CONFIG_USER_TFTP_TFTP is not set
++# CONFIG_USER_TFTPD_TFTPD is not set
++# CONFIG_USER_THTTPD_THTTPD is not set
++# CONFIG_USER_TRACEROUTE_TRACEROUTE is not set
++# CONFIG_USER_UCDSNMP_SNMPD is not set
++# CONFIG_USER_VPNLED_VPNLED is not set
++# CONFIG_USER_WGET is not set
++# CONFIG_USER_ZEBRA_ZEBRA_ZEBRA is not set
++
++#
++# Net-tools
++#
++# CONFIG_USER_NET_TOOLS_ARP is not set
++# CONFIG_USER_NET_TOOLS_HOSTNAME is not set
++# CONFIG_USER_NET_TOOLS_IFCONFIG is not set
++# CONFIG_USER_NET_TOOLS_NAMEIF is not set
++# CONFIG_USER_NET_TOOLS_NETSTAT is not set
++# CONFIG_USER_NET_TOOLS_PLIPCONFIG is not set
++# CONFIG_USER_NET_TOOLS_RARP is not set
++# CONFIG_USER_NET_TOOLS_ROUTE is not set
++# CONFIG_USER_NET_TOOLS_SLATTACH is not set
++# CONFIG_USER_NET_TOOLS_MII_TOOL is not set
++CONFIG_USER_RGCFG_RGCFG=y
++
++#
++# Wireless-tools
++#
++# CONFIG_USER_WIRELESS_TOOLS is not set
++
++#
++# Miscellaneous Applications
++#
++# CONFIG_USER_LANG_A60 is not set
++# CONFIG_USER_CAL_CAL is not set
++# CONFIG_USER_CHAT_CHAT is not set
++# CONFIG_USER_CKSUM_CKSUM is not set
++# CONFIG_USER_CLOCK_CLOCK is not set
++# CONFIG_USER_CPU_CPU is not set
++# CONFIG_USER_CAL_DATE is not set
++# CONFIG_USER_DHRYSTONE_DHRYSTONE is not set
++# CONFIG_USER_FROB_LED_FROB_LED is not set
++# CONFIG_USER_GDBSERVER_GDBREPLAY is not set
++# CONFIG_USER_GDBSERVER_GDBSERVER is not set
++# CONFIG_USER_HD_HD is not set
++# CONFIG_USER_LCD_LCD is not set
++# CONFIG_USER_LEDCON_LEDCON is not set
++# CONFIG_USER_LILO_LILO is not set
++# CONFIG_USER_LISSA_LISSA is not set
++# CONFIG_USER_MATH_TEST is not set
++# CONFIG_USER_MAWK_AWK is not set
++# CONFIG_USER_NULL_NULL is not set
++# CONFIG_USER_PALMBOT_PALMBOT is not set
++# CONFIG_USER_PCMCIA_CS is not set
++# CONFIG_USER_PERL_PERL is not set
++# CONFIG_USER_PYTHON_PYTHON is not set
++# CONFIG_USER_READPROFILE_READPROFILE is not set
++# CONFIG_USER_ROOTLOADER_ROOTLOADER is not set
++# CONFIG_USER_SETSERIAL_SETSERIAL is not set
++# CONFIG_USER_TRIPWIRE_SIGGEN is not set
++# CONFIG_USER_STRACE_STRACE is not set
++# CONFIG_USER_STTY_STTY is not set
++# CONFIG_USER_TCSH_TCSH is not set
++# CONFIG_USER_THREADDEMOS_THREADDEMOS is not set
++# CONFIG_USER_TIP_TIP is not set
++# CONFIG_USER_TRIPWIRE_TRIPWIRE is not set
++
++#
++# LIRC
++#
++# CONFIG_USER_LIRC is not set
++# CONFIG_USER_LIRC_LIRCD is not set
++# CONFIG_USER_LIRC_IRRECORD is not set
++# CONFIG_USER_LIRC_LIRCMD is not set
++# CONFIG_USER_LIRC_IREXEC is not set
++# CONFIG_USER_LIRC_IRW is not set
++# CONFIG_USER_LIRC_MODE2 is not set
++
++#
++# Editors
++#
++# CONFIG_USER_LEVEE_VI is not set
++# CONFIG_USER_ELVISTINY_VI is not set
++
++#
++# Audio tools
++#
++# CONFIG_USER_MP3PLAY_MP3PLAY is not set
++# CONFIG_USER_OGGPLAY_OGG123 is not set
++# CONFIG_USER_OGGPLAY_EXAMPLE is not set
++# CONFIG_USER_MUSICBOX_MUSICBOX is not set
++# CONFIG_USER_PLAY_PLAY is not set
++# CONFIG_USER_PLAY_TONE is not set
++# CONFIG_USER_VPLAY_VPLAY is not set
++# CONFIG_USER_VPLAY_VREC is not set
++# CONFIG_USER_VPLAY_MIXER is not set
++# CONFIG_USER_PLAYRT_PLAYRT is not set
++
++#
++# Video tools
++#
++# CONFIG_USER_W3CAM_VIDCAT is not set
++# CONFIG_USER_W3CAM_W3CAMD is not set
++
++#
++# Fileutils tools
++#
++# CONFIG_USER_FILEUTILS_CAT is not set
++# CONFIG_USER_FILEUTILS_CHGRP is not set
++# CONFIG_USER_FILEUTILS_CHMOD is not set
++# CONFIG_USER_FILEUTILS_CHOWN is not set
++# CONFIG_USER_FILEUTILS_CMP is not set
++# CONFIG_USER_FILEUTILS_CP is not set
++# CONFIG_USER_FILEUTILS_DD is not set
++# CONFIG_USER_FILEUTILS_GREP is not set
++# CONFIG_USER_FILEUTILS_L is not set
++# CONFIG_USER_FILEUTILS_LN is not set
++# CONFIG_USER_FILEUTILS_LS is not set
++# CONFIG_USER_FILEUTILS_MKDIR is not set
++# CONFIG_USER_FILEUTILS_MKFIFO is not set
++# CONFIG_USER_FILEUTILS_MKNOD is not set
++# CONFIG_USER_FILEUTILS_MORE is not set
++# CONFIG_USER_FILEUTILS_MV is not set
++# CONFIG_USER_FILEUTILS_RM is not set
++# CONFIG_USER_FILEUTILS_RMDIR is not set
++# CONFIG_USER_FILEUTILS_SYNC is not set
++# CONFIG_USER_FILEUTILS_TOUCH is not set
++
++#
++# Shutils tools
++#
++# CONFIG_USER_SHUTILS_BASENAME is not set
++# CONFIG_USER_SHUTILS_DATE is not set
++# CONFIG_USER_SHUTILS_DIRNAME is not set
++# CONFIG_USER_SHUTILS_ECHO is not set
++# CONFIG_USER_SHUTILS_FALSE is not set
++# CONFIG_USER_SHUTILS_LOGNAME is not set
++# CONFIG_USER_SHUTILS_PRINTENV is not set
++# CONFIG_USER_SHUTILS_PWD is not set
++# CONFIG_USER_SHUTILS_TRUE is not set
++# CONFIG_USER_SHUTILS_UNAME is not set
++# CONFIG_USER_SHUTILS_WHICH is not set
++# CONFIG_USER_SHUTILS_WHOAMI is not set
++# CONFIG_USER_SHUTILS_YES is not set
++
++#
++# Sysutils tools
++#
++# CONFIG_USER_SYSUTILS_REBOOT is not set
++# CONFIG_USER_SYSUTILS_SHUTDOWN is not set
++# CONFIG_USER_SYSUTILS_DF is not set
++# CONFIG_USER_SYSUTILS_FREE is not set
++# CONFIG_USER_SYSUTILS_HOSTNAME is not set
++# CONFIG_USER_SYSUTILS_KILL is not set
++# CONFIG_USER_SYSUTILS_PS is not set
++
++#
++# Procps tools
++#
++# CONFIG_USER_PROCPS_FREE is not set
++# CONFIG_USER_PROCPS_KILL is not set
++# CONFIG_USER_PROCPS_PGREP is not set
++# CONFIG_USER_PROCPS_PKILL is not set
++# CONFIG_USER_PROCPS_PS is not set
++# CONFIG_USER_PROCPS_SNICE is not set
++# CONFIG_USER_PROCPS_SYSCTL is not set
++# CONFIG_USER_PROCPS_TLOAD is not set
++# CONFIG_USER_PROCPS_TOP is not set
++# CONFIG_USER_PROCPS_UPTIME is not set
++# CONFIG_USER_PROCPS_VMSTAT is not set
++# CONFIG_USER_PROCPS_W is not set
++# CONFIG_USER_PROCPS_WATCH is not set
++
++#
++# PCI utilities
++#
++# CONFIG_USER_PCIUTILS_LSPCI is not set
++# CONFIG_USER_PCIUTILS_SETPCI is not set
++
++#
++# BusyBox
++#
++CONFIG_USER_BUSYBOX_BUSYBOX=y
++
++#
++# Applets
++#
++# CONFIG_USER_BUSYBOX_ADJTIMEX is not set
++# CONFIG_USER_BUSYBOX_AR is not set
++# CONFIG_USER_BUSYBOX_BASENAME is not set
++CONFIG_USER_BUSYBOX_CAT=y
++# CONFIG_USER_BUSYBOX_CHGRP is not set
++# CONFIG_USER_BUSYBOX_CHMOD is not set
++# CONFIG_USER_BUSYBOX_CHOWN is not set
++# CONFIG_USER_BUSYBOX_CHROOT is not set
++# CONFIG_USER_BUSYBOX_CLEAR is not set
++# CONFIG_USER_BUSYBOX_CMP is not set
++CONFIG_USER_BUSYBOX_CP=y
++# CONFIG_USER_BUSYBOX_CUT is not set
++# CONFIG_USER_BUSYBOX_DATE is not set
++# CONFIG_USER_BUSYBOX_DC is not set
++# CONFIG_USER_BUSYBOX_DD is not set
++# CONFIG_USER_BUSYBOX_DF is not set
++# CONFIG_USER_BUSYBOX_DIRNAME is not set
++# CONFIG_USER_BUSYBOX_DMESG is not set
++# CONFIG_USER_BUSYBOX_DUTMP is not set
++CONFIG_USER_BUSYBOX_DU=y
++CONFIG_USER_BUSYBOX_ECHO=y
++CONFIG_USER_BUSYBOX_ENV=y
++# CONFIG_USER_BUSYBOX_EXPR is not set
++# CONFIG_USER_BUSYBOX_FIND is not set
++# CONFIG_USER_BUSYBOX_FREE is not set
++# CONFIG_USER_BUSYBOX_FREERAMDISK is not set
++# CONFIG_USER_BUSYBOX_FSCK_MINIX is not set
++# CONFIG_USER_BUSYBOX_GETOPT is not set
++# CONFIG_USER_BUSYBOX_GREP is not set
++# CONFIG_USER_BUSYBOX_GUNZIP is not set
++# CONFIG_USER_BUSYBOX_GZIP is not set
++# CONFIG_USER_BUSYBOX_HALT is not set
++# CONFIG_USER_BUSYBOX_HEAD is not set
++CONFIG_USER_BUSYBOX_HOSTNAME=y
++# CONFIG_USER_BUSYBOX_ID is not set
++CONFIG_USER_BUSYBOX_IFCONFIG=y
++CONFIG_USER_BUSYBOX_IFCONFIG_STATUS=y
++# CONFIG_USER_BUSYBOX_IFCONFIG_SLIP is not set
++# CONFIG_USER_BUSYBOX_IFCONFIG_HW is not set
++# CONFIG_USER_BUSYBOX_IFCONFIG_MEMSTART_IOADDR_IRQ is not set
++# CONFIG_USER_BUSYBOX_INIT is not set
++CONFIG_USER_BUSYBOX_INSMOD=y
++# CONFIG_USER_BUSYBOX_INSMOD_LOADINKMEM is not set
++CONFIG_USER_BUSYBOX_KILL=y
++# CONFIG_USER_BUSYBOX_KILLALL is not set
++# CONFIG_USER_BUSYBOX_KLOGD is not set
++# CONFIG_USER_BUSYBOX_LENGTH is not set
++# CONFIG_USER_BUSYBOX_LN is not set
++# CONFIG_USER_BUSYBOX_LOGGER is not set
++# CONFIG_USER_BUSYBOX_LOGNAME is not set
++CONFIG_USER_BUSYBOX_LS=y
++# CONFIG_USER_BUSYBOX_LS_USERNAME is not set
++CONFIG_USER_BUSYBOX_LS_TIMESTAMPS=y
++CONFIG_USER_BUSYBOX_LS_FILETYPES=y
++CONFIG_USER_BUSYBOX_LS_SORTFILES=y
++# CONFIG_USER_BUSYBOX_LS_RECURSIVE is not set
++# CONFIG_USER_BUSYBOX_LS_FOLLOWLINKS is not set
++CONFIG_USER_BUSYBOX_LSMOD=y
++# CONFIG_USER_BUSYBOX_MAKEDEVS is not set
++# CONFIG_USER_BUSYBOX_MD5SUM is not set
++CONFIG_USER_BUSYBOX_MKDIR=y
++# CONFIG_USER_BUSYBOX_MKFS_MINIX is not set
++# CONFIG_USER_BUSYBOX_MKNOD is not set
++# CONFIG_USER_BUSYBOX_MKTEMP is not set
++# CONFIG_USER_BUSYBOX_MODPROBE is not set
++# CONFIG_USER_BUSYBOX_MORE is not set
++CONFIG_USER_BUSYBOX_MOUNT=y
++# CONFIG_USER_BUSYBOX_MOUNT_LOOP is not set
++# CONFIG_USER_BUSYBOX_MTAB_SUPPORT is not set
++CONFIG_USER_BUSYBOX_NFSMOUNT=y
++# CONFIG_USER_BUSYBOX_MV is not set
++# CONFIG_USER_BUSYBOX_NC is not set
++CONFIG_USER_BUSYBOX_NSLOOKUP=y
++# CONFIG_USER_BUSYBOX_PIDOF is not set
++CONFIG_USER_BUSYBOX_PING=y
++CONFIG_USER_BUSYBOX_FANCY_PING=y
++# CONFIG_USER_BUSYBOX_PIVOT_ROOT is not set
++# CONFIG_USER_BUSYBOX_POWEROFF is not set
++# CONFIG_USER_BUSYBOX_PRINTF is not set
++CONFIG_USER_BUSYBOX_PS=y
++# CONFIG_USER_BUSYBOX_PWD is not set
++# CONFIG_USER_BUSYBOX_RDATE is not set
++# CONFIG_USER_BUSYBOX_READLINK is not set
++# CONFIG_USER_BUSYBOX_REBOOT is not set
++# CONFIG_USER_BUSYBOX_RENICE is not set
++# CONFIG_USER_BUSYBOX_RESET is not set
++CONFIG_USER_BUSYBOX_RM=y
++# CONFIG_USER_BUSYBOX_RMDIR is not set
++CONFIG_USER_BUSYBOX_RMMOD=y
++CONFIG_USER_BUSYBOX_ROUTE=y
++# CONFIG_USER_BUSYBOX_RPM2CPIO is not set
++# CONFIG_USER_BUSYBOX_SED is not set
++# CONFIG_USER_BUSYBOX_SHELL is not set
++# CONFIG_USER_BUSYBOX_SLEEP is not set
++# CONFIG_USER_BUSYBOX_SORT is not set
++# CONFIG_USER_BUSYBOX_STTY is not set
++# CONFIG_USER_BUSYBOX_SYNC is not set
++# CONFIG_USER_BUSYBOX_SYSLOGD is not set
++# CONFIG_USER_BUSYBOX_TAIL is not set
++# CONFIG_USER_BUSYBOX_TAR is not set
++# CONFIG_USER_BUSYBOX_TEE is not set
++# CONFIG_USER_BUSYBOX_TELNET is not set
++# CONFIG_USER_BUSYBOX_TEST is not set
++# CONFIG_USER_BUSYBOX_TFTP is not set
++# CONFIG_USER_BUSYBOX_TOUCH is not set
++# CONFIG_USER_BUSYBOX_TR is not set
++CONFIG_USER_BUSYBOX_TRACEROUTE=y
++# CONFIG_USER_BUSYBOX_TRUE_FALSE is not set
++# CONFIG_USER_BUSYBOX_TTY is not set
++# CONFIG_USER_BUSYBOX_UMOUNT is not set
++# CONFIG_USER_BUSYBOX_UNAME is not set
++# CONFIG_USER_BUSYBOX_UNIQ is not set
++# CONFIG_USER_BUSYBOX_UNIX2DOS is not set
++# CONFIG_USER_BUSYBOX_UPTIME is not set
++# CONFIG_USER_BUSYBOX_USLEEP is not set
++# CONFIG_USER_BUSYBOX_UUDECODE is not set
++# CONFIG_USER_BUSYBOX_UUENCODE is not set
++# CONFIG_USER_BUSYBOX_VI is not set
++# CONFIG_USER_BUSYBOX_WATCHDOG is not set
++# CONFIG_USER_BUSYBOX_WC is not set
++# CONFIG_USER_BUSYBOX_WGET is not set
++CONFIG_USER_BUSYBOX_WHICH=y
++# CONFIG_USER_BUSYBOX_WHOAMI is not set
++# CONFIG_USER_BUSYBOX_XARGS is not set
++# CONFIG_USER_BUSYBOX_YES is not set
++
++#
++# other features
++#
++# CONFIG_USER_BUSYBOX_VERBOSE_USAGE is not set
++# CONFIG_USER_BUSYBOX_AUTOWIDTH is not set
++# CONFIG_USER_BUSYBOX_NEW_MODULE_INTERFACE is not set
++# CONFIG_USER_BUSYBOX_OLD_MODULE_INTERFACE is not set
++# CONFIG_USER_BUSYBOX_INSMOD_VERSION_CHECKING is not set
++# CONFIG_USER_BUSYBOX_HUMAN_READABLE is not set
++
++#
++# Tinylogin
++#
++# CONFIG_USER_TINYLOGIN_TINYLOGIN is not set
++
++#
++# MicroWindows
++#
++# CONFIG_USER_MICROWIN is not set
++
++#
++# Games
++#
++# CONFIG_USER_GAMES_ADVENT4 is not set
++# CONFIG_USER_GAMES_DUNGEON is not set
++# CONFIG_USER_GAMES_XMAME is not set
++
++#
++# Miscellaneous Configuration
++#
++# CONFIG_USER_RAMIMAGE_NONE is not set
++# CONFIG_USER_RAMIMAGE_RAMFS64 is not set
++CONFIG_USER_RAMIMAGE_RAMFS128=y
++# CONFIG_USER_RAMIMAGE_RAMFS256 is not set
++# CONFIG_USER_CGI_GENERIC is not set
++
++#
++# Debug Builds
++#
++# CONFIG_LIB_DEBUG is not set
++# CONFIG_USER_DEBUG is not set
++
++#
++# Debug tools
++#
++# CONFIG_USER_TIMEPEG_TPT is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/dhcpd.conf uClinux-dist/vendors/Marvell/Firefox/dhcpd.conf
+--- uClinux-dist.orig/vendors/Marvell/Firefox/dhcpd.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/dhcpd.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,16 @@
++subnet 192.168.0.0 netmask 255.255.255.0 {
++	range 192.168.0.2 192.168.0.9;
++	default-lease-time 86400;
++	max-lease-time 86400;
++	option routers 192.168.0.1;
++	option ip-forwarding off;
++	option broadcast-address 192.168.0.255;
++	option subnet-mask 255.255.255.0;
++	option domain-name-servers 192.168.0.1;
++}
++
++# subnet 255.255.255.0
++# router 192.168.0.1
++# dns 192.168.0.2
++# wins 192.168.0.3
++
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/inetd.conf uClinux-dist/vendors/Marvell/Firefox/inetd.conf
+--- uClinux-dist.orig/vendors/Marvell/Firefox/inetd.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/inetd.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++telnet  stream tcp nowait root /bin/telnetd
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/inittab uClinux-dist/vendors/Marvell/Firefox/inittab
+--- uClinux-dist.orig/vendors/Marvell/Firefox/inittab	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/inittab	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,2 @@
++inet:unknown:/bin/inetd
++# boa:unknown:/bin/boa
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/Makefile uClinux-dist/vendors/Marvell/Firefox/Makefile
+--- uClinux-dist.orig/vendors/Marvell/Firefox/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/Makefile	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,85 @@
++#
++#	Makefile -- Build instructions for Marvell/Firefox
++#
++
++ROMFSIMG = $(IMAGEDIR)/romfs.img
++IMAGE    = $(IMAGEDIR)/image.bin
++ELFIMAGE = $(IMAGEDIR)/image.elf
++
++ROMFS_DIRS = bin dev etc home lib mnt proc usr var etc/config etc/dhcpc
++
++DEVICES = \
++	tty,c,5,0      console,c,5,1      cua0,c,5,64      cua1,c,5,65  \
++	\
++	mem,c,1,1      kmem,c,1,2         null,c,1,3       ram0,b,1,0 \
++	ram1,b,1,1 \
++	\
++	ptyp0,c,2,0    ptyp1,c,2,1        ptyp2,c,2,2      ptyp3,c,2,3 \
++	ptyp4,c,2,4    ptyp5,c,2,5        ptyp6,c,2,6      ptyp7,c,2,7 \
++	ptyp8,c,2,8    ptyp9,c,2,9        ptypa,c,2,10     ptypb,c,2,11 \
++	ptypc,c,2,12   ptypd,c,2,13       ptype,c,2,14     ptypf,c,2,15 \
++	\
++	rom0,b,31,0    rom1,b,31,1        rom2,b,31,2      rom3,b,31,3 \
++	rom4,b,31,4    rom5,b,31,5        rom6,b,31,6      rom7,b,31,7 \
++	rom8,b,31,8    rom9,b,31,9 \
++	\
++	tty0,c,4,0     tty1,c,4,1         tty2,c,4,2       tty3,c,4,3 \
++	ttyS0,c,4,64   ttyS1,c,4,65 \
++	\
++	ttyp0,c,3,0    ttyp1,c,3,1        ttyp2,c,3,2      ttyp3,c,3,3 \
++	ttyp4,c,3,4    ttyp5,c,3,5        ttyp6,c,3,6      ttyp7,c,3,7 \
++	ttyp8,c,3,8    ttyp9,c,3,9        ttypa,c,3,10     ttypb,c,3,11 \
++	ttypc,c,3,12   ttypd,c,3,13       ttype,c,3,14     ttypf,c,3,15 \
++	\
++	zero,c,1,5     random,c,1,8       urandom,c,1,9 
++
++
++clean:
++
++romfs:
++	[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)
++	for i in $(ROMFS_DIRS); do \
++		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
++	done
++	for i in $(DEVICES); do \
++		touch $(ROMFSDIR)/dev/@$$i; \
++	done
++	$(ROMFSINST) -s /var/tmp /tmp
++	$(ROMFSINST) -s /bin /sbin
++	$(ROMFSINST) /1
++	$(ROMFSINST) /etc/rc
++	$(ROMFSINST) /etc/rc.net
++	$(ROMFSINST) /etc/inittab
++	$(ROMFSINST) /etc/services
++	case "$(LINUXDIR)" in \
++	*2.4.*) ;; \
++	*) echo "ttyS0:linux:/bin/sh" >> $(ROMFSDIR)/etc/inittab ;; \
++	esac
++	$(ROMFSINST) /etc/inetd.conf
++	$(ROMFSINST) /etc/config/dhcpd.conf
++	$(ROMFSINST) /etc/config/dhcpd.leases
++	$(ROMFSINST) /etc/motd
++	$(ROMFSINST) /etc/resolv.conf
++	$(ROMFSINST) /etc/resolv.dnsmasq
++	$(ROMFSINST) /etc/config/unimac.conf
++	$(ROMFSINST) /etc/passwd
++	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
++
++image:
++	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
++	genromfs -v -V "ROMdisk" -f $(ROMFSIMG) -d $(ROMFSDIR)
++	$(CROSS_COMPILE)objcopy -O binary --remove-section=.romvec \
++			--remove-section=.text --remove-section=.ramvec \
++			--remove-section=.init \
++			--remove-section=.bss --remove-section=.eram \
++			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.data
++	$(CROSS_COMPILE)objcopy -O binary --remove-section=.ramvec \
++			--remove-section=.bss --remove-section=.data \
++			--remove-section=.eram \
++			--set-section-flags=.romvec=CONTENTS,ALLOC,LOAD,READONLY,CODE \
++			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.text
++	cat $(IMAGEDIR)/linux.text $(IMAGEDIR)/linux.data $(ROMFSIMG) > $(IMAGE)
++	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROOTDIR)/$(LINUXDIR)/arch/armnommu/boot/zImage /tftpboot
++	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROMFSIMG) /tftpboot
++#	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(IMAGE) /tftpboot
++
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/motd uClinux-dist/vendors/Marvell/Firefox/motd
+--- uClinux-dist.orig/vendors/Marvell/Firefox/motd	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/motd	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,13 @@
++Welcome to
++          ____ _  _
++         /  __| ||_|                 
++    _   _| |  | | _ ____  _   _  _  _ 
++   | | | | |  | || |  _ \| | | |\ \/ /
++   | |_| | |__| || | | | | |_| |/    \
++   |  ___\____|_||_|_| |_|\____|\_/\_/
++   | |
++   |_| On Marvell's FireFox HG board !!!
++
++For further information on the uClinux project check:
++http://www.uclinux.org/
++
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/passwd uClinux-dist/vendors/Marvell/Firefox/passwd
+--- uClinux-dist.orig/vendors/Marvell/Firefox/passwd	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/passwd	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++passwd abvQyXa0CDjIA
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/rc uClinux-dist/vendors/Marvell/Firefox/rc
+--- uClinux-dist.orig/vendors/Marvell/Firefox/rc	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/rc	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,22 @@
++insmod /lib/modules/unimac.o
++hostname Firefox
++/bin/expand /etc/ramfs.img /dev/ram0
++mount -t proc proc /proc
++mount -t ext2 /dev/ram0 /var
++mkdir /var/tmp
++mkdir /var/log
++mkdir /var/run
++mkdir /var/lock
++
++#Making the /etc directory RW
++/bin/expand /etc/ramfs.img /dev/ram1
++cp -r /etc /var
++mount -t ext2 /dev/ram1 /etc
++cp -r /var/etc /
++
++rgcfg -i
++
++/bin/ifconfig LAN 192.168.0.1
++#uncomment next line to make your Firefox board act as a home-gateway.
++source /etc/rc.net
++cat /etc/motd
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/rc.net uClinux-dist/vendors/Marvell/Firefox/rc.net
+--- uClinux-dist.orig/vendors/Marvell/Firefox/rc.net	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/rc.net	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,23 @@
++# DHCP Server configuration 
++/bin/dhcpd LAN &
++
++# DHCP Client configuration
++rm -rf /etc/dhcpc/*
++chmod 777 /etc/resolv.conf
++chmod 777 /etc/resolv.dnsmasq
++/bin/ifconfig lo 127.0.0.1 
++/bin/route add 127.0.0.0 lo 
++/bin/ifconfig WAN up 
++/bin/dhcpcd -rDH -l 86400 WAN &
++
++# DNS settings
++/bin/dnsmasq -r /etc/resolv.dnsmasq & 
++
++# FW + NAT settings
++/bin/iptables -t nat -F
++/bin/iptables -t nat -A POSTROUTING -o WAN -j MASQUERADE
++cp -f 1 /proc/sys/net/ipv4/ip_dynaddr
++cp -f 1 /proc/sys/net/ipv4/ip_forward
++
++# HTTP server
++/bin/boa &
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/resolv.conf uClinux-dist/vendors/Marvell/Firefox/resolv.conf
+--- uClinux-dist.orig/vendors/Marvell/Firefox/resolv.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/resolv.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++nameserver 127.0.0.1
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/services uClinux-dist/vendors/Marvell/Firefox/services
+--- uClinux-dist.orig/vendors/Marvell/Firefox/services	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/services	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,446 @@
++rtmp	1/ddp
++tcpmux	1/tcp
++tcpmux	1/udp
++nbp	2/ddp
++echo	4/ddp
++rje	5/tcp
++rje	5/udp
++zip	6/ddp
++echo	7/tcp
++echo	7/udp
++discard	9/tcp	sink null
++discard	9/udp	sink null
++systat	11/tcp	users
++systat	11/udp	users
++daytime	13/tcp
++daytime	13/udp
++netstat	15/tcp
++qotd	17/tcp	quote
++qotd	17/udp	quote
++msp	18/tcp
++msp	18/udp
++chargen	19/tcp	ttytst source
++chargen	19/udp	ttytst source
++ftp-data	20/tcp
++ftp-data	20/udp
++fsp	21/udp	fspd
++ftp	21/tcp
++ftp	21/udp
++ssh	22/tcp
++ssh	22/udp
++telnet	23/tcp
++telnet	23/udp
++smtp	25/tcp	mail
++smtp	25/udp	mail
++time	37/tcp	timserver
++time	37/udp	timserver
++rlp	39/tcp	resource
++rlp	39/udp	resource
++nameserver	42/tcp	name
++nameserver	42/udp	name
++nicname	43/tcp	whois
++nicname	43/udp	whois
++tacacs	49/tcp
++tacacs	49/udp
++re-mail-ck	50/tcp
++re-mail-ck	50/udp
++domain	53/tcp	nameserver
++domain	53/udp	nameserver
++whois++	63/tcp
++whois++	63/udp
++bootps	67/tcp
++bootps	67/udp
++bootpc	68/tcp
++bootpc	68/udp
++tftp	69/tcp
++tftp	69/udp
++gopher	70/tcp
++gopher	70/udp
++netrjs-1	71/tcp
++netrjs-1	71/udp
++netrjs-2	72/tcp
++netrjs-2	72/udp
++netrjs-3	73/tcp
++netrjs-3	73/udp
++netrjs-4	74/tcp
++netrjs-4	74/udp
++finger	79/tcp
++finger	79/udp
++http	80/tcp	www www-http
++http	80/udp	www www-http
++kerberos	88/tcp	kerberos5 krb5
++kerberos	88/udp	kerberos5 krb5
++supdup	95/tcp
++supdup	95/udp
++linuxconf	98/tcp
++hostname	101/tcp	hostnames
++hostname	101/udp	hostnames
++iso-tsap	102/tcp	tsap
++csnet-ns	105/tcp	cso
++csnet-ns	105/udp	cso
++poppassd	106/tcp
++poppassd	106/udp
++rtelnet	107/tcp
++rtelnet	107/udp
++pop2	109/tcp	pop-2 postoffice
++pop2	109/udp	pop-2
++pop3	110/tcp	pop-3
++pop3	110/udp	pop-3
++sunrpc	111/tcp	portmapper
++sunrpc	111/udp	portmapper
++auth	113/tcp	authentication tap ident
++auth	113/udp	authentication tap ident
++sftp	115/tcp
++sftp	115/udp
++uucp-path	117/tcp
++uucp-path	117/udp
++nntp	119/tcp	readnews untp
++nntp	119/udp	readnews untp
++ntp	123/tcp
++ntp	123/udp
++netbios-ns	137/tcp
++netbios-ns	137/udp
++netbios-dgm	138/tcp
++netbios-dgm	138/udp
++netbios-ssn	139/tcp
++netbios-ssn	139/udp
++imap	143/tcp	imap2
++imap	143/udp	imap2
++snmp	161/tcp
++snmp	161/udp
++snmptrap	162/udp	snmp-trap
++cmip-man	163/tcp
++cmip-man	163/udp
++cmip-agent	164/tcp
++smip-agent	164/udp
++mailq	174/tcp
++mailq	174/udp
++xdmcp	177/tcp
++xdmcp	177/udp
++nextstep	178/tcp	NeXTStep NextStep
++nextstep	178/udp	NeXTStep NextStep
++bgp	179/tcp
++bgp	179/udp
++prospero	191/tcp
++prospero	191/udp
++irc	194/tcp
++irc	194/udp
++smux	199/tcp
++smux	199/udp
++at-rtmp	201/tcp
++at-rtmp	201/udp
++at-nbp	202/tcp
++at-nbp	202/udp
++at-echo	204/tcp
++at-echo	204/udp
++at-zis	206/tcp
++at-zis	206/udp
++qmtp	209/tcp
++qmtp	209/udp
++z39.50	210/tcp	z3950 wais
++z39.50	210/udp	z3950 wais
++ipx	213/tcp
++ipx	213/udp
++imap3	220/tcp
++imap3	220/udp
++link	245/tcp	ttylink
++link	245/udp	ttylink
++rsvp_tunnel	363/tcp
++rsvp_tunnel	363/udp
++rpc2portmap	369/tcp
++rpc2portmap	369/udp
++codaauth2	370/tcp
++codaauth2	370/udp
++ulistproc	372/tcp	ulistserv
++ulistproc	372/udp	ulistserv
++ldap	389/tcp
++ldap	389/udp
++svrloc	427/tcp
++svrloc	427/udp
++mobileip-agent	434/tcp
++mobileip-agent	434/udp
++mobilip-mn	435/tcp
++mobilip-mn	435/udp
++https	443/tcp
++https	443/udp
++snpp	444/tcp
++snpp	444/udp
++microsoft-ds	445/tcp
++microsoft-ds	445/udp
++kpasswd	464/tcp	kpwd
++kpasswd	464/udp	kpwd
++smtps	465/tcp
++photuris	468/tcp
++photuris	468/udp
++saft	487/tcp
++saft	487/udp
++gss-http	488/tcp
++gss-http	488/udp
++pim-rp-disc	496/tcp
++pim-rp-disc	496/udp
++isakmp	500/tcp
++isakmp	500/udp
++biff	512/udp	comsat
++exec	512/tcp
++login	513/tcp
++who	513/udp	whod
++shell	514/tcp	cmd
++syslog	514/udp
++printer	515/tcp	spooler
++printer	515/udp	spooler
++talk	517/udp
++ntalk	518/udp
++utime	519/tcp	unixtime
++utime	519/udp	unixtime
++efs	520/tcp
++router	520/udp	route routed
++ripng	521/tcp
++ripng	521/udp
++timed	525/tcp	timeserver
++timed	525/udp	timeserver
++tempo	526/tcp	newdate
++courier	530/tcp	rpc
++conference	531/tcp	chat
++netnews	532/tcp	readnews
++netwall	533/udp
++iiop	535/tcp
++iiop	535/udp
++gdomap	538/tcp
++gdomap	538/udp
++uucp	540/tcp	uucpd
++klogin	543/tcp
++kshell	544/tcp	krcmd
++dhcpv6-client	546/tcp
++dhcpv6-client	546/udp
++dhcpv6-server	547/tcp
++dhcpv6-server	547/udp
++afpovertcp	548/tcp
++afpovertcp	548/udp
++rtsp	554/tcp
++rtsp	554/udp
++remotefs	556/tcp	rfs_server rfs
++nntps	563/tcp
++nntps	563/udp
++whoami	565/tcp
++whoami	565/udp
++submission	587/tcp	msa
++submission	587/udp	msa
++npmp-local	610/tcp	dqs313_qmaster
++npmp-local	610/udp	dqs313_qmaster
++npmp-gui	611/tcp	dqs313_execd
++npmp-gui	611/udp	dqs313_execd
++hmmp-ind	612/tcp	dqs313_intercell
++hmmp-ind	612/udp	dqs313_intercell
++gii	616/tcp
++ldaps	636/tcp
++ldaps	636/udp
++acap	674/tcp
++acap	674/udp
++ha-cluster	694/tcp
++ha-cluster	694/udp
++kerberos-adm	749/tcp
++kerberos-iv	750/tcp	kerberos4 kerberos-sec kdc
++kerberos-iv	750/udp	kerberos4 kerberos-sec kdc
++kerberos_master	751/tcp
++kerberos_master	751/udp
++passwd_server	752/udp
++krb5_prop	754/tcp
++krbupdate	760/tcp	kreg
++webster	765/tcp
++webster	765/udp
++phonebook	767/tcp
++phonebook	767/udp
++omirr	808/tcp	omirrd
++omirr	808/udp	omirrd
++supfilesrv	871/tcp
++rsync	873/tcp
++rsync	873/udp
++swat	901/tcp
++telnets	992/tcp
++telnets	992/udp
++imaps	993/tcp
++imaps	993/udp
++ircs	994/tcp
++ircs	994/udp
++pop3s	995/tcp
++pop3s	995/udp
++socks	1080/tcp
++socks	1080/udp
++kpop	1109/tcp
++supfiledbg	1127/tcp
++skkserv	1178/tcp
++rmtcfg	1236/tcp
++h323hostcallsc	1300/tcp
++h323hostcallsc	1300/udp
++xtel	1313/tcp
++ms-sql-s	1433/tcp
++ms-sql-s	1433/udp
++ms-sql-m	1434/tcp
++ms-sql-m	1434/udp
++ica	1494/tcp
++ica	1494/udp
++wins	1512/tcp
++wins	1512/udp
++ingreslock	1524/tcp
++ingreslock	1524/udp
++prospero-np	1525/tcp
++prospero-np	1525/udp
++support	1529/tcp
++support	1529/tcp	prmsd gnatsd
++datametrics	1645/tcp	old-radius
++datametrics	1645/udp	old-radius
++sa-msg-port	1646/tcp	old-radacct
++sa-msg-port	1646/udp	old-radacct
++kermit	1649/tcp
++kermit	1649/udp
++l2tp	1701/tcp
++l2tp	1701/udp
++h323gatedisc	1718/tcp
++h323gatedisc	1718/udp
++h323gatestat	1719/tcp
++h323gatestat	1719/udp
++h323hostcall	1720/tcp
++h323hostcall	1720/udp
++tftp-mcast	1758/tcp
++tftp-mcast	1758/udp
++hello	1788/tcp
++hello	1788/udp
++radius	1812/tcp
++radius	1812/udp
++radius-acct	1813/tcp	radacct
++radius-acct	1813/udp	radacct
++mtp	1911/tcp
++mtp	1911/udp
++hsrp	1985/tcp
++hsrp	1985/udp
++licensedaemon	1986/tcp
++licensedaemon	1986/udp
++gdp-port	1997/tcp
++gdp-port	1997/udp
++cfinger	2003/tcp
++nfs	2049/tcp	nfsd
++nfs	2049/udp	nfsd
++knetd	2053/tcp
++zephyr-srv	2102/tcp
++zephyr-srv	2102/udp
++zephyr-clt	2103/tcp
++zephyr-clt	2103/udp
++zephyr-hm	2104/tcp
++zephyr-hm	2104/udp
++eklogin	2105/tcp
++ninstall	2150/tcp
++ninstall	2150/udp
++cvspserver	2401/tcp
++cvspserver	2401/udp
++venus	2430/tcp
++venus	2430/udp
++venus-se	2431/tcp
++venus-se	2431/udp
++codasrv	2432/tcp
++codasrv	2432/udp
++codasrv-se	2433/tcp
++codasrv-se	2433/udp
++zebrasrv	2600/tcp
++zebra	2601/tcp
++ripd	2602/tcp
++ripngd	2603/tcp
++ospfd	2604/tcp
++bgpd	2605/tcp
++ospf6d	2606/tcp
++corbaloc	2809/tcp
++afbackup	2988/tcp
++afbackup	2988/udp
++squid	3128/tcp
++icpv2	3130/tcp
++icpv2	3130/udp
++mysql	3306/tcp
++mysql	3306/udp
++trnsprntproxy	3346/tcp
++trnsprntproxy	3346/udp
++prsvp	3455/tcp
++prsvp	3455/udp
++rwhois	4321/tcp
++rwhois	4321/udp
++krb524	4444/tcp
++krb524	4444/udp
++fax	4557/tcp
++hylafax	4559/tcp
++rfe	5002/tcp
++rfe	5002/udp
++sgi-dgl	5232/tcp
++sgi-dgl	5232/udp
++cfengine	5308/tcp
++cfengine	5308/udp
++noclog	5354/tcp
++noclog	5354/udp
++hostmon	5355/tcp
++hostmon	5355/udp
++postgres	5432/tcp
++postgres	5432/udp
++cvsup	5999/tcp	CVSup
++cvsup	5999/udp	CVSup
++x11	6000/tcp	X
++ircd	6667/tcp
++ircd	6667/udp
++afs3-fileserver	7000/tcp
++afs3-fileserver	7000/udp
++afs3-callback	7001/tcp
++afs3-callback	7001/udp
++afs3-prserver	7002/tcp
++afs3-prserver	7002/udp
++afs3-vlserver	7003/tcp
++afs3-vlserver	7003/udp
++afs3-kaserver	7004/tcp
++afs3-kaserver	7004/udp
++afs3-volser	7005/tcp
++afs3-volser	7005/udp
++afs3-errors	7006/tcp
++afs3-errors	7006/udp
++afs3-bos	7007/tcp
++afs3-bos	7007/udp
++afs3-update	7008/tcp
++afs3-update	7008/udp
++afs3-rmtsys	7009/tcp
++afs3-rmtsys	7009/udp
++xfs	7100/tcp
++tircproxy	7666/tcp
++des	8000/tcp
++des3	8001/tcp
++http-alt	8008/tcp
++http-alt	8008/udp
++webcache	8080/tcp
++webcache	8080/udp
++tproxy	8081/tcp
++tproxy	8081/udp
++dungeon	8798/tcp
++advent4	8898/tcp
++jetdirect	9100/tcp	laserjet hplj
++mandelspawn	9359/udp	mandelbrot
++sd	9876/tcp
++sd	9876/udp
++amanda	10080/tcp
++amanda	10080/udp
++kamanda	10081/tcp
++kamanda	10081/udp
++amandaidx	10082/tcp
++amidxtape	10083/tcp
++h323callsigalt	11720/tcp
++h323callsigalt	11720/udp
++isdnlog	20011/tcp
++isdnlog	20011/udp
++vboxd	20012/tcp
++vboxd	20012/udp
++binkp	24554/tcp
++binkp	24554/udp
++quake	26000/tcp
++quake	26000/udp
++wnn6-ds	26208/tcp
++wnn6-ds	26208/udp
++asp	27374/tcp
++asp	27374/udp
++traceroute	33434/tcp
++traceroute	33434/udp
++tfido	60177/tcp
++tfido	60177/udp
++fido	60179/tcp
++fido	60179/udp
+diff -urN uClinux-dist.orig/vendors/Marvell/Firefox/unimac.conf uClinux-dist/vendors/Marvell/Firefox/unimac.conf
+--- uClinux-dist.orig/vendors/Marvell/Firefox/unimac.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Firefox/unimac.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,15 @@
++# Copyright: Marvell Inc.
++# Copnfiguration script for unimac network configuration
++#
++# Configure two VLANs
++VLANS = 2
++#
++# VLAN LAN and its ports
++VLAN=LAN
++PORTS=1,2,3,4
++MAC=00:00:19:19:21:22
++#
++# VLAN WAN and its ports
++VLAN=WAN
++PORTS=0
++MAC=00:00:20:20:21:23
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/1 uClinux-dist/vendors/Marvell/Libertas/1
+--- uClinux-dist.orig/vendors/Marvell/Libertas/1	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/1	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++1
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.arch uClinux-dist/vendors/Marvell/Libertas/config.arch
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.arch	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.arch	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,166 @@
++.EXPORT_ALL_VARIABLES:
++############################################################################
++#
++# Vendor specific settings
++#
++
++CONSOLE_BAUD_RATE = 38400
++
++############################################################################
++#
++# The makefiles need to know how to do things in different contexts
++# To save some pain we put it all here
++#
++# First settings we always want for all build
++#
++
++# ARCH = kernel,  TARGET_ARCH = uClibc
++
++MACHINE       = arm
++ARCH          = armnommu
++CROSS_COMPILE = arm-elf-
++CROSS         = $(CROSS_COMPILE)
++
++CC        = $(CROSS_COMPILE)gcc $(CPUFLAGS)
++AS        = $(CROSS_COMPILE)as $(CPUFLAGS)
++CXX       = $(CROSS_COMPILE)g++ $(CPUFLAGS)
++AR        = $(CROSS_COMPILE)ar
++LD        = $(CROSS_COMPILE)ld
++OBJCOPY   = $(CROSS_COMPILE)objcopy
++RANLIB    = $(CROSS_COMPILE)ranlib
++ELF2FLT   = elf2flt
++STRIPTOOL = $(CROSS_COMPILE)strip
++STRIP     = $(STRIPTOOL)
++
++UCLINUX_BUILD_SET = 0			# have we set a special config below
++
++############################################################################
++#
++# General purpose lib building rules,  uClibc.config uses these when
++# possible
++#
++
++ifdef UCLINUX_BUILD_LIB
++
++  ifdef CONFIG_LIB_DEBUG
++	CFLAGS  :=  -O1 -g
++  else
++	CFLAGS  :=  -O2 -g 
++  endif
++#	CFLAGS  += -fno-builtin
++#	CFLAGS  += -DEMBED
++
++	# don't want all the CFLAGS for uClibc/Config
++	ARCH_CFLAGS = $(CFLAGS)
++#	CFLAGS  += -I$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/include -I$(ROOTDIR)
++	CFLAGS  += -I$(ROOTDIR)/lib/uClibc/include -I$(ROOTDIR)
++	CFLAGS  += -Dlinux -D__linux__ -D__uClinux__ -Dunix
++	CPUFLAGS := -I$(ROOTDIR)
++	# the following is needed for uClinux-2.4
++	CFLAGS  += -I$(ROOTDIR)/$(LINUXDIR)/include
++
++	LDFLAGS  = $(CFLAGS) -Wl,-elf2flt
++
++	UCLINUX_BUILD_SET=1
++endif
++
++############################################################################
++#
++# Settings for building user apps
++#
++
++ifdef UCLINUX_BUILD_USER
++
++#	GCC_DIR = $(shell $(CC) -v 2>&1|grep specs|sed -e 's/.* \(.*\)specs/\1\./')
++#	GCC_LIB = /usr/local/arm-elf/lib
++
++#	SLIBC        = -lc
++#	SLIBM        = -lm
++#	SLIBNET      = -lnet
++#	SLIBDES      = -ldes
++#	SLIBPCAP     = -lpcap
++#	SLIBSSL      = -lssl
++#	SLIBCRYPTO   = -lcrypto
++
++#	LIBC        = -Wl,-R,$(ROOTDIR)/lib/$(LIBCDIR)/libc.gdb $(SLIBC)
++#	LIBC        = $(SLIBC)
++#	LIBM        = $(SLIBM)
++#	LIBNET      = $(SLIBNET)
++#	LIBDES      = $(SLIBDES)
++#	LIBPCAP     = $(SLIBPCAP)
++#	LIBSSL      = $(SLIBSSL)
++#	LIBCRYPTO   = $(SLIBCRYPTO)
++
++#	LIBGCC      = -lgcc
++#	LIBIBERTY   = -liberty
++#	LIBIO       = -lio
++#	LIBIOSTREAM = -liostream
++#	LIBSTDCPP   = -lstdc++
++
++	LDPATH = -L$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/lib \
++		-L$(ROOTDIR)/lib/libnet \
++		-L$(ROOTDIR)/lib/libpcap
++#		-L$(ROOTDIR)/lib/libm
++#		-L$(ROOTDIR)/lib/$(LIBCDIR)/. \
++#		-L$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/lib \
++#		-L$(ROOTDIR)/lib/libm \
++#		-L$(ROOTDIR)/lib/libnet \
++#		-L$(ROOTDIR)/lib/libdes \
++#		-L$(ROOTDIR)/lib/libpcap \
++#		-L$(ROOTDIR)/lib/libssl \
++#		-L$(ROOTDIR)/lib/zlib
++
++	INCLIBC = -I$(ROOTDIR)/lib/$(CONFIG_LIBCDIR)/include
++	INCLIBM = -I$(ROOTDIR)/lib/libm
++	INCNET  = -I$(ROOTDIR)/lib/libnet
++#	INCDES  = -I$(ROOTDIR)/freeswan/libdes
++#	INCGMP  = -I$(ROOTDIR)/lib/libgmp
++	INCPCAP = -I$(ROOTDIR)/lib/libpcap
++#	INCSSL  = -I$(ROOTDIR)/lib/libssl/include
++#	INCZ    = -I$(ROOTDIR)/lib/zlib
++#	INCVEND = -I$(ROOTDIR)/vendors/include
++
++#  ifdef CONFIG_USER_DEBUG
++#	CFLAGS  :=  -O1 -g
++#  else
++#	CFLAGS  :=  -Os
++#  endif
++	CFLAGS  += -Wl,-elf2flt
++	CFLAGS  += -Dlinux -D__linux__ -Dunix -D__uClinux__ -DEMBED
++	CFLAGS  += $(INCLIBC) $(INCLIBM)
++	CFLAGS  += -I$(ROOTDIR)
++#	CFLAGS  += -fno-builtin
++	#
++	# the following is needed for 2.4
++	#
++#	CFLAGS  += -I$(ROOTDIR)/$(LINUXDIR)/include
++
++#	CXXFLAGS = $(CFLAGS) $(INCCXX) -fname-mangling-version-0
++
++	LDFLAGS  = $(CFLAGS) -Wl,-elf2flt $(LDPATH) 
++#-L/usr/local/arm-elf/lib
++#-L$(ROOTDIR)/lib/uClibc/lib
++	LDLIBS   = $(LDPATH) -lcrypt -lnet -lpcap
++#	LDLIBS   = $(LDPATH) $(LIBC)
++#	LDLIBS-static  = $(LDPATH) $(SLIBC)
++#	CXXLIBS  = $(LDPATH) $(LIBSTDCPP) $(LIBIOSTREAM) $(LIBIO) $(LIBIBERTY) \
++#			$(LIBC) $(LIBGCC)
++	
++#	FLTFLAGS :=
++#	export FLTFLAGS
++
++	# for anyone still using it
++#	CONVERT = /bin/true
++
++	UCLINUX_BUILD_SET=1
++endif
++
++############################################################################
++#
++# fall through,  do other config options perhaps
++#
++
++ifeq ($(UCLINUX_BUILD_SET),1)
++endif
++
++############################################################################
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.linux-2.0.x uClinux-dist/vendors/Marvell/Libertas/config.linux-2.0.x
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.linux-2.0.x	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.linux-2.0.x	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,154 @@
++#
++# Automatically generated make config: don't edit
++#
++CONFIG_ARM=y
++CONFIG_UCLINUX=y
++MAGIC_ROM_PTR=y
++
++#
++# Code maturity level options
++#
++CONFIG_EXPERIMENTAL=y
++
++#
++# Loadable module support
++#
++# CONFIG_MODULES is not set
++
++#
++# General setup
++#
++# CONFIG_ARCH_TRIO is not set
++CONFIG_ARCH_AT91=y
++# CONFIG_ARCH_NETARM is not set
++# CONFIG_ARCH_ARC is not set
++# CONFIG_ARCH_A5K is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_NEXUSPCI is not set
++# CONFIG_ARCH_ACORN is not set
++# CONFIG_PCI is not set
++CONFIG_ARCH_ATMEL=y
++CONFIG_CPU_ARM7=y
++CONFIG_ARM_CLK=32768000
++DRAM_BASE=02000000
++DRAM_SIZE=00100000
++FLASH_MEM_BASE=01000000
++FLASH_SIZE=00100000
++# CONFIG_EBI is not set
++# CONFIG_ARCH_ATMEL_EB55 is not set
++# CONFIG_WILL_BOOT_FROM_FLASH is not set
++# CONFIG_FRAME_POINTER is not set
++CONFIG_BINUTILS_NEW=y
++# CONFIG_DEBUG_ERRORS is not set
++CONFIG_NET=y
++# CONFIG_SYSVIPC is not set
++CONFIG_REDUCED_MEMORY=y
++CONFIG_BINFMT_FLAT=y
++CONFIG_KERNEL_ELF=y
++# CONFIG_BINFMT_JAVA is not set
++
++#
++# Floppy, IDE, and other block devices
++#
++CONFIG_BLK_DEV_BLKMEM=y
++# CONFIG_BLK_DEV_IDE is not set
++
++#
++# Additional Block/FLASH Devices
++#
++# CONFIG_BLK_DEV_LOOP is not set
++# CONFIG_BLK_DEV_MD is not set
++CONFIG_BLK_DEV_RAM=y
++# CONFIG_RD_RELEASE_BLOCKS is not set
++# CONFIG_BLK_DEV_INITRD is not set
++# CONFIG_DEV_FLASH is not set
++
++#
++# Character devices
++#
++CONFIG_SERIAL_ATMEL=y
++# CONFIG_CONSOLE_ON_ATMEL is not set
++# CONFIG_SWAP_ATMEL_PORTS is not set
++USART0_BASE=FFFD0000
++USART1_BASE=FFFCC000
++# CONFIG_SC28L91 is not set
++# CONFIG_SERIAL_ATMEL_BT is not set
++# CONFIG_LED_ATMEL is not set
++
++#
++# Networking options
++#
++# CONFIG_FIREWALL is not set
++# CONFIG_NET_ALIAS is not set
++CONFIG_INET=y
++CONFIG_IP_FORWARD=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_IP_ACCT is not set
++CONFIG_IP_ROUTER=y
++# CONFIG_NET_IPIP is not set
++
++#
++# (it is safe to leave these untouched)
++#
++# CONFIG_INET_PCTCP is not set
++# CONFIG_INET_RARP is not set
++# CONFIG_NO_PATH_MTU_DISCOVERY is not set
++# CONFIG_IP_NOSR is not set
++# CONFIG_SKB_LARGE is not set
++
++#
++#  
++#
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_AX25 is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NETLINK is not set
++# CONFIG_IPSEC is not set
++
++#
++# Network device support
++#
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++CONFIG_SLIP=y
++CONFIG_SLIP_COMPRESSED=y
++# CONFIG_SLIP_SMART is not set
++# CONFIG_SLIP_MODE_SLIP6 is not set
++CONFIG_PPP=y
++
++#
++# CCP compressors for PPP are only built as modules.
++#
++# CONFIG_EQUALIZER is not set
++# CONFIG_UCCS8900 is not set
++# CONFIG_SMC9194 is not set
++# CONFIG_NE2000 is not set
++
++#
++# Filesystems
++#
++# CONFIG_QUOTA is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_EXT_FS is not set
++CONFIG_EXT2_FS=y
++# CONFIG_XIA_FS is not set
++# CONFIG_NLS is not set
++CONFIG_PROC_FS=y
++CONFIG_NFS_FS=y
++# CONFIG_ROOT_NFS is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AFFS_FS is not set
++CONFIG_ROMFS_FS=y
++# CONFIG_JFFS_FS is not set
++# CONFIG_UFS_FS is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PROFILE is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.linux-2.4.x uClinux-dist/vendors/Marvell/Libertas/config.linux-2.4.x
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.linux-2.4.x	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.linux-2.4.x	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,672 @@
++#
++# Automatically generated by make menuconfig: don't edit
++#
++CONFIG_ARM=y
++# CONFIG_SBUS is not set
++CONFIG_UID16=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++CONFIG_UCLINUX=y
++MAGIC_ROM_PTR=y
++
++#
++# Code maturity level options
++#
++# CONFIG_EXPERIMENTAL is not set
++# CONFIG_OBSOLETE is not set
++
++#
++# Loadable module support
++#
++CONFIG_MODULES=y
++# CONFIG_MODVERSIONS is not set
++# CONFIG_KMOD is not set
++
++#
++# System Type
++#
++# CONFIG_ARCH_FIREFOX is not set
++CONFIG_ARCH_LIBERTAS=y
++# CONFIG_CPU_BIG_ENDIAN is not set
++# CONFIG_LIBERTAS_AP22 is not set
++CONFIG_LIBERTAS_AP32=y
++# CONFIG_CPU_ARM946_CPU_IDLE is not set
++CONFIG_CPU_ARM946_I_CACHE_ON=y
++CONFIG_CPU_ARM946_D_CACHE_ON=y
++# CONFIG_CPU_ARM946_WRITETHROUGH is not set
++# CONFIG_128MHZ_CLOCK is not set
++CONFIG_160MHZ_CLOCK=y
++# CONFIG_8M_MEM is not set
++CONFIG_16M_MEM=y
++CONFIG_CMDLINE_BOOL=y
++CONFIG_CMDLINE="console=ttyS0,38400 root=/dev/mtdblock1 ro rootfstype=cramfs"
++CONFIG_SET_MEM_PARAM=y
++DRAM_BASE=0xd0000000
++DRAM_SIZE=0xfC0000
++FLASH_MEM_BASE=0xffc00000
++FLASH_SIZE=0x400000
++FLASH_ROMFS_BASE=0xffca0000
++FLASH_JFFS2_BASE=0xfff80000
++# CONFIG_RAMKERNEL is not set
++CONFIG_ROMKERNEL=y
++CONFIG_NO_PGT_CACHE=y
++CONFIG_CPU_ARM946=y
++CONFIG_CPU_32=y
++# CONFIG_CPU_26 is not set
++CONFIG_CPU_WITH_CACHE=y
++CONFIG_CPU_WITH_MCR_INSTRUCTION=y
++CONFIG_CMDLINE_BOOL=y
++DRAM_BASE=0xd0000000
++DRAM_SIZE=0xfC0000
++FLASH_MEM_BASE=0xffc00000
++FLASH_SIZE=0x400000
++FLASH_ROMFS_BASE=0xffca0000
++FLASH_JFFS2_BASE=0xfff80000
++
++#
++# General setup
++#
++# CONFIG_PCI_INTEGRATOR is not set
++# CONFIG_PCI is not set
++# CONFIG_HOTPLUG is not set
++# CONFIG_PCMCIA is not set
++CONFIG_NET=y
++# CONFIG_SYSVIPC is not set
++# CONFIG_REDUCED_MEMORY is not set
++# CONFIG_BSD_PROCESS_ACCT is not set
++CONFIG_SYSCTL=y
++# CONFIG_NWFPE is not set
++CONFIG_KCORE_ELF=y
++# CONFIG_KCORE_AOUT is not set
++CONFIG_BINFMT_FLAT=y
++CONFIG_KERNEL_ELF=y
++# CONFIG_ARTHUR is not set
++# CONFIG_ALIGNMENT_TRAP is not set
++# CONFIG_RAM_ATTACHED_ROMFS is not set
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++# CONFIG_NETLINK_DEV is not set
++CONFIG_NETFILTER=y
++# CONFIG_NETFILTER_DEBUG is not set
++CONFIG_FILTER=y
++CONFIG_UNIX=y
++CONFIG_INET=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++# CONFIG_IP_PNP is not set
++# CONFIG_NET_ARP_LIMIT is not set
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_INET_ECN is not set
++# CONFIG_SYN_COOKIES is not set
++
++#
++#   IP: Netfilter Configuration
++#
++CONFIG_IP_NF_CONNTRACK=y
++CONFIG_IP_NF_FTP=y
++CONFIG_IP_NF_STARCRAFT=m
++# CONFIG_IP_NF_H323 is not set
++# CONFIG_IP_NF_AMANDA is not set
++# CONFIG_IP_NF_TFTP is not set
++CONFIG_IP_NF_IRC=y
++# CONFIG_IP_NF_CT_PROTO_GRE is not set
++# CONFIG_IP_NF_PPTP is not set
++CONFIG_IP_NF_IPTABLES=y
++CONFIG_IP_NF_MATCH_LIMIT=y
++CONFIG_IP_NF_MATCH_MAC=y
++# CONFIG_IP_NF_MATCH_PKTTYPE is not set
++CONFIG_IP_NF_MATCH_MARK=y
++CONFIG_IP_NF_MATCH_MULTIPORT=y
++CONFIG_IP_NF_MATCH_TOS=y
++CONFIG_IP_NF_MATCH_TIME=m
++# CONFIG_IP_NF_MATCH_RECENT is not set
++# CONFIG_IP_NF_MATCH_ECN is not set
++# CONFIG_IP_NF_MATCH_DSCP is not set
++CONFIG_IP_NF_MATCH_AH_ESP=y
++CONFIG_IP_NF_MATCH_LENGTH=y
++CONFIG_IP_NF_MATCH_TTL=y
++CONFIG_IP_NF_MATCH_TCPMSS=y
++# CONFIG_IP_NF_MATCH_HELPER is not set
++CONFIG_IP_NF_MATCH_STATE=y
++# CONFIG_IP_NF_MATCH_CONNTRACK is not set
++CONFIG_IP_NF_FILTER=y
++CONFIG_IP_NF_TARGET_REJECT=y
++CONFIG_IP_NF_NAT=y
++CONFIG_IP_NF_NAT_NEEDED=y
++CONFIG_IP_NF_TARGET_MASQUERADE=y
++CONFIG_IP_NF_TARGET_REDIRECT=y
++CONFIG_IP_NF_AUTOFW=m
++CONFIG_IP_NF_NAT_LOCAL=y
++CONFIG_IP_NF_NAT_IRC=y
++CONFIG_IP_NF_NAT_FTP=y
++CONFIG_IP_NF_NAT_STARCRAFT=m
++CONFIG_IP_NF_MANGLE=y
++CONFIG_IP_NF_TARGET_TOS=y
++# CONFIG_IP_NF_TARGET_ECN is not set
++# CONFIG_IP_NF_TARGET_DSCP is not set
++CONFIG_IP_NF_TARGET_MARK=y
++CONFIG_IP_NF_TARGET_LOG=y
++CONFIG_IP_NF_TARGET_ULOG=y
++CONFIG_IP_NF_TARGET_TCPMSS=y
++CONFIG_IP_NF_ARPTABLES=y
++CONFIG_IP_NF_ARPFILTER=y
++# CONFIG_IP_NF_ARP_MANGLE is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++
++#
++# Appletalk devices
++#
++# CONFIG_DEV_APPLETALK is not set
++# CONFIG_DECNET is not set
++CONFIG_BRIDGE=y
++# CONFIG_BRIDGE_NF_EBTABLES is not set
++# CONFIG_BRIDGE_EBT_T_FILTER is not set
++# CONFIG_BRIDGE_EBT_T_NAT is not set
++# CONFIG_BRIDGE_EBT_BROUTE is not set
++# CONFIG_BRIDGE_EBT_LOG is not set
++# CONFIG_BRIDGE_EBT_IPF is not set
++# CONFIG_BRIDGE_EBT_ARPF is not set
++# CONFIG_BRIDGE_EBT_VLANF is not set
++# CONFIG_BRIDGE_EBT_MARKF is not set
++# CONFIG_BRIDGE_EBT_SNAT is not set
++# CONFIG_BRIDGE_EBT_DNAT is not set
++# CONFIG_BRIDGE_EBT_REDIRECT is not set
++# CONFIG_BRIDGE_EBT_MARK_T is not set
++
++#
++# QoS and/or fair queueing
++#
++# CONFIG_NET_SCHED is not set
++# CONFIG_IPSEC is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++
++#
++# Network device support
++#
++CONFIG_NETDEVICES=y
++
++#
++# ARCnet devices
++#
++# CONFIG_ARCNET is not set
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++
++#
++# Ethernet (10 or 100Mbit)
++#
++CONFIG_NET_ETHERNET=y
++# CONFIG_ARM_AM79C961A is not set
++# CONFIG_ARM_CIRRUS is not set
++# CONFIG_SUNLANCE is not set
++# CONFIG_SUNBMAC is not set
++# CONFIG_SUNQE is not set
++# CONFIG_SUNGEM is not set
++# CONFIG_NET_VENDOR_3COM is not set
++# CONFIG_LANCE is not set
++# CONFIG_NET_VENDOR_SMC is not set
++# CONFIG_NET_VENDOR_RACAL is not set
++# CONFIG_NET_ISA is not set
++# CONFIG_NET_PCI is not set
++# CONFIG_NET_POCKET is not set
++# CONFIG_FEC is not set
++# CONFIG_CS89x0 is not set
++# CONFIG_UCCS8900 is not set
++
++#
++# Ethernet (1000 Mbit)
++#
++# CONFIG_ACENIC is not set
++# CONFIG_DL2K is not set
++# CONFIG_E1000 is not set
++# CONFIG_MYRI_SBUS is not set
++# CONFIG_NS83820 is not set
++# CONFIG_HAMACHI is not set
++# CONFIG_YELLOWFIN is not set
++# CONFIG_R8169 is not set
++# CONFIG_SK98LIN is not set
++# CONFIG_TIGON3 is not set
++# CONFIG_FDDI is not set
++# CONFIG_PLIP is not set
++CONFIG_PPP=y
++# CONFIG_PPP_MULTILINK is not set
++# CONFIG_PPP_FILTER is not set
++# CONFIG_PPP_ASYNC is not set
++# CONFIG_PPP_SYNC_TTY is not set
++CONFIG_PPP_DEFLATE=y
++CONFIG_PPP_BSDCOMP=y
++CONFIG_PPPOE=y
++# CONFIG_SLIP is not set
++
++#
++# Wireless LAN (non-hamradio)
++#
++CONFIG_NET_RADIO=y
++# CONFIG_STRIP is not set
++# CONFIG_WAVELAN is not set
++# CONFIG_ARLAN is not set
++# CONFIG_AIRONET4500 is not set
++# CONFIG_AIRONET4500_NONCS is not set
++# CONFIG_AIRONET4500_PROC is not set
++# CONFIG_HERMES is not set
++# CONFIG_NET_WIRELESS is not set
++
++#
++# Token Ring devices
++#
++# CONFIG_TR is not set
++# CONFIG_NET_FC is not set
++
++#
++# Wan interfaces
++#
++# CONFIG_WAN is not set
++
++#
++# Amateur Radio support
++#
++# CONFIG_HAMRADIO is not set
++
++#
++# IrDA (infrared) support
++#
++# CONFIG_IRDA is not set
++
++#
++# ATA/IDE/MFM/RLL support
++#
++# CONFIG_IDE is not set
++# CONFIG_BLK_DEV_IDE_MODES is not set
++# CONFIG_BLK_DEV_HD is not set
++
++#
++# SCSI support
++#
++# CONFIG_SCSI is not set
++
++#
++# ISDN subsystem
++#
++# CONFIG_ISDN is not set
++
++#
++# Parallel port support
++#
++# CONFIG_PARPORT is not set
++
++#
++# Memory Technology Devices (MTD)
++#
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_CONCAT is not set
++# CONFIG_MTD_REDBOOT_PARTS is not set
++# CONFIG_MTD_CMDLINE_PARTS is not set
++# CONFIG_MTD_AFS_PARTS is not set
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++CONFIG_MTD_CFI=y
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_GEN_PROBE=y
++# CONFIG_MTD_CFI_ADV_OPTIONS is not set
++CONFIG_MTD_CFI_INTELEXT=y
++CONFIG_MTD_CFI_AMDSTD=y
++# CONFIG_MTD_CFI_AMDSTD_RETRY is not set
++# CONFIG_MTD_CFI_STAA is not set
++CONFIG_MTD_CFI_UTIL=y
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++# CONFIG_MTD_OBSOLETE_CHIPS is not set
++# CONFIG_MTD_AMDSTD is not set
++# CONFIG_MTD_SHARP is not set
++# CONFIG_MTD_JEDEC is not set
++
++#
++# Mapping drivers for chip access
++#
++CONFIG_MTD_LIBERTAS=y
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PHYSMAP is not set
++# CONFIG_MTD_ARM_INTEGRATOR is not set
++# CONFIG_MTD_CDB89712 is not set
++# CONFIG_MTD_SA1100 is not set
++# CONFIG_MTD_DC21285 is not set
++# CONFIG_MTD_IQ80310 is not set
++# CONFIG_MTD_LUBBOCK is not set
++# CONFIG_MTD_IXP425 is not set
++# CONFIG_MTD_EPXA10DB is not set
++# CONFIG_MTD_FORTUNET is not set
++# CONFIG_MTD_AUTCPU12 is not set
++# CONFIG_MTD_EDB7312 is not set
++# CONFIG_MTD_H720X is not set
++# CONFIG_MTD_IMPA7 is not set
++# CONFIG_MTD_CEIVA is not set
++# CONFIG_MTD_NOR_TOTO is not set
++# CONFIG_MTD_UCLINUX is not set
++# CONFIG_MTD_PCI is not set
++# CONFIG_MTD_PCMCIA is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_PMC551 is not set
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLKMTD is not set
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++# CONFIG_MTD_DOCPROBE is not set
++
++#
++# NAND Flash Device Drivers
++#
++# CONFIG_MTD_NAND is not set
++# CONFIG_MTD_NAND_SPIA is not set
++# CONFIG_MTD_NAND_TOTO is not set
++# CONFIG_MTD_NAND_AUTCPU12 is not set
++# CONFIG_MTD_NAND_EDB7312 is not set
++
++#
++# Plug and Play configuration
++#
++# CONFIG_PNP is not set
++# CONFIG_ISAPNP is not set
++
++#
++# Block devices
++#
++# CONFIG_BLK_DEV_FD is not set
++# CONFIG_BLK_DEV_XD is not set
++# CONFIG_PARIDE is not set
++# CONFIG_BLK_CPQ_DA is not set
++# CONFIG_BLK_CPQ_CISS_DA is not set
++# CONFIG_CISS_SCSI_TAPE is not set
++# CONFIG_BLK_DEV_DAC960 is not set
++# CONFIG_BLK_DEV_UMEM is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_NBD is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_SIZE=1792
++# CONFIG_BLK_DEV_INITRD is not set
++# CONFIG_BLK_DEV_RAMDISK_DATA is not set
++# CONFIG_BLK_DEV_BLKMEM is not set
++# CONFIG_BLK_STATS is not set
++
++#
++# File systems
++#
++# CONFIG_QUOTA is not set
++# CONFIG_QFMT_V2 is not set
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_REISERFS_CHECK is not set
++# CONFIG_REISERFS_PROC_INFO is not set
++# CONFIG_ADFS_FS is not set
++# CONFIG_ADFS_FS_RW is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BEFS_DEBUG is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EXT3_FS is not set
++# CONFIG_JBD is not set
++# CONFIG_JBD_DEBUG is not set
++# CONFIG_FAT_FS is not set
++# CONFIG_MSDOS_FS is not set
++# CONFIG_UMSDOS_FS is not set
++# CONFIG_VFAT_FS is not set
++# CONFIG_EFS_FS is not set
++# CONFIG_JFFS_FS is not set
++CONFIG_JFFS2_FS=y
++CONFIG_JFFS2_FS_DEBUG=0
++# CONFIG_JFFS2_FS_NAND is not set
++CONFIG_CRAMFS=y
++# CONFIG_TMPFS is not set
++CONFIG_RAMFS=y
++# CONFIG_ISO9660_FS is not set
++# CONFIG_JOLIET is not set
++# CONFIG_ZISOFS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_JFS_DEBUG is not set
++# CONFIG_JFS_STATISTICS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_NTFS_FS is not set
++# CONFIG_NTFS_RW is not set
++# CONFIG_HPFS_FS is not set
++CONFIG_PROC_FS=y
++# CONFIG_DEVFS_FS is not set
++# CONFIG_DEVFS_MOUNT is not set
++# CONFIG_DEVFS_DEBUG is not set
++# CONFIG_DEVPTS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_QNX4FS_RW is not set
++# CONFIG_ROMFS_FS is not set
++# CONFIG_EXT2_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UDF_FS is not set
++# CONFIG_UDF_RW is not set
++# CONFIG_UFS_FS is not set
++# CONFIG_UFS_FS_WRITE is not set
++
++#
++# Network File Systems
++#
++# CONFIG_CODA_FS is not set
++# CONFIG_INTERMEZZO_FS is not set
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++# CONFIG_NFS_DIRECTIO is not set
++# CONFIG_ROOT_NFS is not set
++# CONFIG_NFSD is not set
++# CONFIG_NFSD_V3 is not set
++# CONFIG_NFSD_TCP is not set
++CONFIG_SUNRPC=y
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++CONFIG_SMB_FS=m
++# CONFIG_SMB_NLS_DEFAULT is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_NCPFS_PACKET_SIGNING is not set
++# CONFIG_NCPFS_IOCTL_LOCKING is not set
++# CONFIG_NCPFS_STRONG is not set
++# CONFIG_NCPFS_NFS_NS is not set
++# CONFIG_NCPFS_OS2_NS is not set
++# CONFIG_NCPFS_SMALLDOS is not set
++# CONFIG_NCPFS_NLS is not set
++# CONFIG_NCPFS_EXTRAS is not set
++# CONFIG_ZISOFS_FS is not set
++
++#
++# Partition Types
++#
++# CONFIG_PARTITION_ADVANCED is not set
++CONFIG_SMB_NLS=y
++CONFIG_NLS=y
++
++#
++# Native Language Support
++#
++CONFIG_NLS_DEFAULT="iso8859-1"
++# CONFIG_NLS_CODEPAGE_437 is not set
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ISO8859_1 is not set
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++
++#
++# Character devices
++#
++# CONFIG_LEDMAN is not set
++# CONFIG_DS1302 is not set
++# CONFIG_VT is not set
++CONFIG_SERIAL=y
++CONFIG_SERIAL_CONSOLE=y
++# CONFIG_SERIAL_EXTENDED is not set
++# CONFIG_SERIAL_NONSTANDARD is not set
++# CONFIG_UNIX98_PTYS is not set
++
++#
++# I2C support
++#
++# CONFIG_I2C is not set
++
++#
++# Mice
++#
++# CONFIG_BUSMOUSE is not set
++# CONFIG_MOUSE is not set
++
++#
++# Joysticks
++#
++# CONFIG_INPUT_GAMEPORT is not set
++# CONFIG_INPUT_NS558 is not set
++# CONFIG_INPUT_LIGHTNING is not set
++# CONFIG_INPUT_PCIGAME is not set
++# CONFIG_INPUT_CS461X is not set
++# CONFIG_INPUT_EMU10K1 is not set
++# CONFIG_INPUT_SERIO is not set
++# CONFIG_INPUT_SERPORT is not set
++# CONFIG_INPUT_ANALOG is not set
++# CONFIG_INPUT_A3D is not set
++# CONFIG_INPUT_ADI is not set
++# CONFIG_INPUT_COBRA is not set
++# CONFIG_INPUT_GF2K is not set
++# CONFIG_INPUT_GRIP is not set
++# CONFIG_INPUT_INTERACT is not set
++# CONFIG_INPUT_TMDC is not set
++# CONFIG_INPUT_SIDEWINDER is not set
++# CONFIG_INPUT_IFORCE_USB is not set
++# CONFIG_INPUT_IFORCE_232 is not set
++# CONFIG_INPUT_WARRIOR is not set
++# CONFIG_INPUT_MAGELLAN is not set
++# CONFIG_INPUT_SPACEORB is not set
++# CONFIG_INPUT_SPACEBALL is not set
++# CONFIG_INPUT_STINGER is not set
++# CONFIG_INPUT_DB9 is not set
++# CONFIG_INPUT_GAMECON is not set
++# CONFIG_INPUT_TURBOGRAFX is not set
++# CONFIG_QIC02_TAPE is not set
++# CONFIG_IPMI_HANDLER is not set
++# CONFIG_IPMI_PANIC_EVENT is not set
++# CONFIG_IPMI_DEVICE_INTERFACE is not set
++# CONFIG_IPMI_KCS is not set
++# CONFIG_IPMI_WATCHDOG is not set
++
++#
++# Controller Area Network Cards/Chips
++#
++# CONFIG_CAN4LINUX is not set
++
++#
++# Watchdog Cards
++#
++# CONFIG_WATCHDOG is not set
++# CONFIG_SCx200_GPIO is not set
++# CONFIG_AMD_PM768 is not set
++# CONFIG_NVRAM is not set
++# CONFIG_RTC is not set
++# CONFIG_DTLK is not set
++# CONFIG_R3964 is not set
++# CONFIG_APPLICOM is not set
++
++#
++# Ftape, the floppy tape device driver
++#
++# CONFIG_FTAPE is not set
++# CONFIG_AGP is not set
++# CONFIG_DRM is not set
++
++#
++# USB support
++#
++# CONFIG_USB is not set
++
++#
++# I2O device support
++#
++# CONFIG_I2O is not set
++# CONFIG_I2O_BLOCK is not set
++# CONFIG_I2O_LAN is not set
++# CONFIG_I2O_SCSI is not set
++# CONFIG_I2O_PROC is not set
++
++#
++# Kernel hacking
++#
++CONFIG_FRAME_POINTER=y
++# CONFIG_REVISIT is not set
++CONFIG_DEBUG_ERRORS=y
++# CONFIG_DEBUG_USER is not set
++CONFIG_DEBUG_INFO=y
++# CONFIG_MAGIC_SYSRQ is not set
++# CONFIG_NO_MMU_LARGE_ALLOCS is not set
++
++#
++# Cryptographic options
++#
++# CONFIG_CRYPTO is not set
++
++#
++# Library routines
++#
++# CONFIG_CRC32 is not set
++CONFIG_ZLIB_INFLATE=y
++CONFIG_ZLIB_DEFLATE=y
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.uClibc uClinux-dist/vendors/Marvell/Libertas/config.uClibc
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.uClibc	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.uClibc	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,65 @@
++#
++# Automatically generated make config: don't edit
++#
++
++#
++# Target Architecture Features and Options
++#
++HAVE_ELF=y
++CONFIG_GENERIC_ARM=y
++# CONFIG_ARM7TDMI is not set
++# CONFIG_STRONGARM is not set
++# CONFIG_XSCALE is not set
++# UCLIBC_HAS_MMU is not set
++UCLIBC_HAS_FLOATS=y
++# HAS_FPU is not set
++UCLIBC_HAS_SOFT_FLOAT=y
++DO_C99_MATH=y
++WARNINGS="-Wall"
++KERNEL_SOURCE="$(ROOTDIR)/$(LINUXDIR)/."
++UCLIBC_UCLINUX_BROKEN_MUNMAP=y
++EXCLUDE_BRK=y
++C_SYMBOL_PREFIX=""
++HAVE_DOT_CONFIG=y
++
++#
++# General Library Settings
++#
++# DOPIC is not set
++UCLIBC_CTOR_DTOR=y
++UCLIBC_HAS_THREADS=y
++# UCLIBC_HAS_LFS is not set
++MALLOC=y
++# MALLOC_930716 is not set
++UCLIBC_DYNAMIC_ATEXIT=y
++# HAS_SHADOW is not set
++UCLIBC_HAS_REGEX=y
++UNIX98PTY_ONLY=y
++ASSUME_DEVPTS=y
++
++#
++# Networking Support
++#
++# UCLIBC_HAS_IPV6 is not set
++UCLIBC_HAS_RPC=y
++UCLIBC_HAS_FULL_RPC=y
++
++#
++# String and Stdio Support
++#
++# UCLIBC_HAS_WCHAR is not set
++# USE_OLD_VFPRINTF is not set
++
++#
++# Library Installation Options
++#
++DEVEL_PREFIX="/usr/$(TARGET_ARCH)-linux-uclibc"
++SYSTEM_DEVEL_PREFIX="$(DEVEL_PREFIX)"
++DEVEL_TOOL_PREFIX="$(DEVEL_PREFIX)/usr"
++
++#
++# uClibc hacking options
++#
++# DODEBUG is not set
++# DOASSERTS is not set
++# UCLIBC_MALLOC_DEBUGGING is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.user uClinux-dist/vendors/Marvell/Libertas/config.user
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.user	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.user	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,617 @@
++#
++# Automatically generated make config: don't edit
++#
++
++#
++# Core Applications
++#
++CONFIG_USER_INIT_INIT=y
++CONFIG_USER_INIT_CONSOLE_SH=y
++# CONFIG_USER_INIT_RUN_FIREWALL is not set
++CONFIG_USER_SASH_SH=y
++# CONFIG_USER_SH_SH is not set
++# CONFIG_USER_NWSH_SH is not set
++# CONFIG_USER_BASH_BASH is not set
++# CONFIG_USER_OTHER_SH is not set
++CONFIG_USER_SASH_HISTORY=y
++# CONFIG_USER_SASH_REBOOT is not set
++# CONFIG_USER_SASH_REBOOT_SNAPGEAR is not set
++CONFIG_USER_BUSYBOX_KILLALL=y
++# CONFIG_USER_SASH_SHUTDOWN is not set
++CONFIG_USER_INIT_EXPAND=y
++# CONFIG_USER_INIT_EXPAND_NOZEROES is not set
++# CONFIG_USER_VERSION_VERSION is not set
++# CONFIG_USER_LOGIN_LOGIN is not set
++# CONFIG_USER_OLD_PASSWORDS is not set
++# CONFIG_USER_ONLY_ROOT is not set
++# CONFIG_USER_AGETTY_AGETTY is not set
++# CONFIG_USER_GETTYD_GETTYD is not set
++# CONFIG_USER_LOGIN_PASSWD is not set
++# CONFIG_USER_CRON_CRON is not set
++
++#
++# Real Time Clock
++#
++# CONFIG_USER_HWCLOCK_HWCLOCK is not set
++# CONFIG_USER_RTC_M41T11 is not set
++# CONFIG_USER_RTC_DS1302 is not set
++
++#
++# Vixie-cron
++#
++# CONFIG_USER_VIXIECRON_CRON is not set
++# CONFIG_USER_VIXIECRON_CRONTAB is not set
++
++#
++# at
++#
++# CONFIG_USER_AT_AT is not set
++# CONFIG_USER_AT_ATD is not set
++# CONFIG_USER_AT_ATRUN is not set
++
++#
++# Library Configuration
++#
++
++#
++# Force build (Normally built when required)
++#
++# CONFIG_LIB_LIBAES_FORCE is not set
++# CONFIG_LIB_LIBDES_FORCE is not set
++# CONFIG_LIB_LIBSSL_FORCE is not set
++# CONFIG_LIB_LIBGMP_FORCE is not set
++# CONFIG_LIB_LIBG_FORCE is not set
++# CONFIG_LIB_LIBLDAP_FORCE is not set
++# CONFIG_LIB_LIBPAM_FORCE is not set
++CONFIG_LIB_LIBPCAP_FORCE=y
++# CONFIG_LIB_ZLIB_FORCE is not set
++# CONFIG_LIB_LIBATM_FORCE is not set
++# CONFIG_LIB_LIBPNG_FORCE is not set
++# CONFIG_LIB_LIBJPEG_FORCE is not set
++# CONFIG_LIB_NCURSES_FORCE is not set
++
++#
++# Library Configuration
++#
++# CONFIG_LIB_UC_LIBC_TIMEZONE is not set
++
++#
++# Flash Tools
++#
++# CONFIG_USER_FLASHW_FLASHW is not set
++# CONFIG_USER_NETFLASH_NETFLASH is not set
++# CONFIG_USER_RECOVER_RECOVER is not set
++# CONFIG_USER_BOOTTOOLS_FLASHLOADER is not set
++# CONFIG_USER_BOOTTOOLS_HIMEMLOADER is not set
++
++#
++# MTD utils
++#
++# CONFIG_USER_MTDUTILS is not set
++# CONFIG_USER_MTDUTILS_ERASE is not set
++# CONFIG_USER_MTDUTILS_ERASEALL is not set
++# CONFIG_USER_MTDUTILS_FTL_CHECK is not set
++# CONFIG_USER_MTDUTILS_FTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_MKFSJFFS is not set
++# CONFIG_USER_MTDUTILS_MKFSJFFS2 is not set
++# CONFIG_USER_MTDUTILS_NFTLDUMP is not set
++# CONFIG_USER_MTDUTILS_NFTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NANDDUMP is not set
++# CONFIG_USER_MTDUTILS_NANDTEST is not set
++# CONFIG_USER_MTDUTILS_NANDWRITE is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADBIOS is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADIPL is not set
++
++#
++# Filesystem Applications
++#
++# CONFIG_USER_FLATFSD_FLATFSD is not set
++# CONFIG_USER_MOUNT_MOUNT is not set
++# CONFIG_USER_MOUNT_UMOUNT is not set
++# CONFIG_USER_FDISK_FDISK is not set
++
++#
++# EXT2
++#
++# CONFIG_USER_E2FSPROGS_E2FSCK_E2FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_BADBLOCKS is not set
++# CONFIG_USER_E2FSPROGS_MISC_CHATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_DUMPE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_E2LABEL is not set
++# CONFIG_USER_E2FSPROGS_MISC_FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_LSATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKLOST_FOUND is not set
++# CONFIG_USER_E2FSPROGS_MISC_TUNE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_UUIDGEN is not set
++
++#
++# RESIERFS
++#
++# CONFIG_USER_REISERFSPROGS is not set
++# CONFIG_USER_REISERFSPROGS_DEBUGRESIERFS is not set
++# CONFIG_USER_REISERFSPROGS_MKREISERFS is not set
++# CONFIG_USER_REISERFSPROGS_REISERFSCK is not set
++# CONFIG_USER_REISERFSPROGS_RESIZE_REISERFS is not set
++# CONFIG_USER_REISERFSPROGS_UNPACK is not set
++
++#
++# SAMBA
++#
++# CONFIG_USER_SAMBA is not set
++# CONFIG_USER_SAMBA_SMBD is not set
++# CONFIG_USER_SAMBA_NMBD is not set
++# CONFIG_USER_SAMBA_SMBMOUNT is not set
++# CONFIG_USER_SAMBA_SMBUMOUNT is not set
++
++#
++# SMBFS
++#
++# CONFIG_USER_SMBMOUNT_SMBMOUNT is not set
++# CONFIG_USER_SMBMOUNT_SMBUMOUNT is not set
++
++#
++# CRAMFS
++#
++# CONFIG_USER_CRAMFS_CRAMFSCK is not set
++# CONFIG_USER_CRAMFS_MKCRAMFS is not set
++
++#
++# Network Applications
++#
++CONFIG_USER_ROUTE_ARP=y
++CONFIG_USER_BOA_SRC_BOA=y
++# CONFIG_USER_BOA_WITH_SSL is not set
++# CONFIG_USER_BPALOGIN_BPALOGIN is not set
++# CONFIG_USER_BR2684CTL_BR2684CTL is not set
++# CONFIG_USER_BRCFG_BRCFG is not set
++CONFIG_USER_BRCTL_BRCTL=y
++# CONFIG_USER_DHCPCD_DHCPCD is not set
++CONFIG_USER_DHCPCD_NEW_DHCPCD=y
++# CONFIG_USER_DHCPD_DHCPD is not set
++CONFIG_USER_DHCP_ISC_SERVER_DHCPD=y
++# CONFIG_USER_DHCP_ISC_CLIENT_DHCLIENT is not set
++# CONFIG_USER_DHCP_ISC_RELAY_DHCRELAY is not set
++# CONFIG_USER_DIALD_DIALD is not set
++# CONFIG_USER_DISCARD_DISCARD is not set
++CONFIG_USER_DNSMASQ_DNSMASQ=y
++# CONFIG_USER_ETHATTACH_ETHATTACH is not set
++# CONFIG_USER_EZIPUPDATE_EZIPUPDATE is not set
++# CONFIG_USER_FTP_FTP_FTP is not set
++# CONFIG_USER_FTPD_FTPD is not set
++# CONFIG_USER_FREESWAN is not set
++# CONFIG_USER_HTTPD_HTTPD is not set
++# CONFIG_USER_IFATTACH_IFATTACH is not set
++# CONFIG_USER_ROUTE_IFCONFIG is not set
++CONFIG_USER_INETD_INETD=y
++# CONFIG_USER_IPCHAINS_IPCHAINS is not set
++# CONFIG_USER_IPFWADM_IPFWADM is not set
++# CONFIG_USER_IPMASQADM_IPMASQADM is not set
++# CONFIG_USER_IPPORTFW_IPPORTFW is not set
++# CONFIG_USER_IPREDIR_IPREDIR is not set
++# CONFIG_USER_IPROUTE2 is not set
++CONFIG_USER_IPTABLES_IPTABLES=y
++# CONFIG_USER_KENDIN_CONFIG is not set
++# CONFIG_USER_KLAXON_KLAXON is not set
++# CONFIG_USER_L2TPD_L2TPD is not set
++# CONFIG_USER_LOATTACH_LOATTACH is not set
++# CONFIG_USER_SMTP_SMTPCLIENT is not set
++# CONFIG_USER_MAIL_MAIL_IP is not set
++# CONFIG_USER_MINI_HTTPD_MINI_HTTPD is not set
++# CONFIG_USER_MSNTP_MSNTP is not set
++# CONFIG_USER_ROUTE_NETSTAT is not set
++# CONFIG_USER_NETSTAT_NAT_NETSTAT_NAT is not set
++# CONFIG_USER_ROUTE_MIITOOL is not set
++# CONFIG_USER_NTPD_NTPD is not set
++# CONFIG_USER_NTPD_NTPDATE is not set
++# CONFIG_USER_NTPD_NTPQ is not set
++# CONFIG_USER_OPENSSL_APPS is not set
++# CONFIG_USER_PING_PING is not set
++# CONFIG_USER_PLUG_PLUG is not set
++# CONFIG_USER_PORTMAP_PORTMAP is not set
++# CONFIG_USER_PPPD_PPPD_PPPD is not set
++# CONFIG_USER_PPTPD_PPTPCTRL is not set
++# CONFIG_USER_PPTPD_PPTPD is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP_CALLMGR is not set
++# CONFIG_USER_RDATE_RDATE is not set
++# CONFIG_USER_ROUTE_ROUTE is not set
++# CONFIG_USER_ROUTED_ROUTED is not set
++# CONFIG_USER_RP_PPPOE_PPPOE is not set
++# CONFIG_USER_SETHDLC_SETHDLC is not set
++# CONFIG_USER_SLATTACH_SLATTACH is not set
++# CONFIG_USER_SNMPD_SNMPD is not set
++# CONFIG_USER_STUNNEL_STUNNEL is not set
++# CONFIG_USER_SQUID_SQUID is not set
++# CONFIG_USER_SSH_SSH is not set
++# CONFIG_USER_SSH_SSHD is not set
++# CONFIG_USER_SSH_SSHKEYGEN is not set
++# CONFIG_USER_STP_STP is not set
++# CONFIG_USER_TCPWRAP_TCPD is not set
++# CONFIG_USER_TCPBLAST_TCPBLAST is not set
++# CONFIG_USER_TCPDUMP_TCPDUMP is not set
++CONFIG_USER_TELNETD_TELNETD=y
++# CONFIG_USER_TELNET_TELNET is not set
++# CONFIG_USER_TFTP_TFTP is not set
++# CONFIG_USER_TFTPD_TFTPD is not set
++# CONFIG_USER_THTTPD_THTTPD is not set
++# CONFIG_USER_UCDSNMP_SNMPD is not set
++# CONFIG_USER_VCONFIG_VCONFIG is not set
++# CONFIG_USER_VPNLED_VPNLED is not set
++# CONFIG_USER_WGET is not set
++# CONFIG_USER_ZEBRA_ZEBRA_ZEBRA is not set
++
++#
++# Net-tools
++#
++# CONFIG_USER_NET_TOOLS_ARP is not set
++# CONFIG_USER_NET_TOOLS_HOSTNAME is not set
++# CONFIG_USER_NET_TOOLS_IFCONFIG is not set
++# CONFIG_USER_NET_TOOLS_NAMEIF is not set
++# CONFIG_USER_NET_TOOLS_NETSTAT is not set
++# CONFIG_USER_NET_TOOLS_PLIPCONFIG is not set
++# CONFIG_USER_NET_TOOLS_RARP is not set
++# CONFIG_USER_NET_TOOLS_ROUTE is not set
++# CONFIG_USER_NET_TOOLS_SLATTACH is not set
++# CONFIG_USER_NET_TOOLS_MII_TOOL is not set
++
++#
++# Wireless-tools
++#
++CONFIG_USER_WIRELESS_TOOLS=y
++CONFIG_USER_WIRELESS_TOOLS_IWCONFIG=y
++# CONFIG_USER_WIRELESS_TOOLS_IWGETID is not set
++# CONFIG_USER_WIRELESS_TOOLS_IWLIST is not set
++CONFIG_USER_WIRELESS_TOOLS_IWPRIV=y
++CONFIG_USER_WIRELESS_TOOLS_IWSPY=y
++# CONFIG_USER_HOSTAP_HOSTAP is not set
++# CONFIG_USER_WLAN_NG is not set
++
++#
++# Miscellaneous Applications
++#
++# CONFIG_USER_LANG_A60 is not set
++# CONFIG_USER_CAL_CAL is not set
++# CONFIG_USER_CHAT_CHAT is not set
++# CONFIG_USER_CKSUM_CKSUM is not set
++# CONFIG_USER_CLOCK_CLOCK is not set
++# CONFIG_USER_CPU_CPU is not set
++# CONFIG_USER_CAL_DATE is not set
++# CONFIG_USER_DHRYSTONE_DHRYSTONE is not set
++# CONFIG_USER_DE2TSCAL_DE2TSCAL is not set
++# CONFIG_USER_FROB_LED_FROB_LED is not set
++# CONFIG_USER_GDBSERVER_GDBREPLAY is not set
++# CONFIG_USER_GDBSERVER_GDBSERVER is not set
++# CONFIG_USER_HD_HD is not set
++# CONFIG_USER_LCD_LCD is not set
++# CONFIG_USER_LEDCON_LEDCON is not set
++# CONFIG_USER_LILO_LILO is not set
++# CONFIG_USER_LISSA_LISSA is not set
++# CONFIG_USER_USBCBI_USBCBI is not set
++# CONFIG_USER_USBISO_USBISO is not set
++# CONFIG_USER_MATH_TEST is not set
++# CONFIG_USER_MAWK_AWK is not set
++# CONFIG_USER_NULL_NULL is not set
++# CONFIG_USER_PALMBOT_PALMBOT is not set
++# CONFIG_USER_PCMCIA_CS is not set
++# CONFIG_USER_PERL_PERL is not set
++# CONFIG_USER_PYTHON_PYTHON is not set
++# CONFIG_USER_READPROFILE_READPROFILE is not set
++# CONFIG_USER_ROOTLOADER_ROOTLOADER is not set
++# CONFIG_USER_SETSERIAL_SETSERIAL is not set
++# CONFIG_USER_TRIPWIRE_SIGGEN is not set
++# CONFIG_USER_STRACE_STRACE is not set
++# CONFIG_USER_STTY_STTY is not set
++# CONFIG_USER_TCSH_TCSH is not set
++# CONFIG_USER_THREADDEMOS_THREADDEMOS is not set
++# CONFIG_USER_TIP_TIP is not set
++# CONFIG_USER_TRIPWIRE_TRIPWIRE is not set
++# CONFIG_USER_LRZSZ_LRZSZ is not set
++
++#
++# LIRC
++#
++# CONFIG_USER_LIRC is not set
++# CONFIG_USER_LIRC_LIRCD is not set
++# CONFIG_USER_LIRC_IRRECORD is not set
++# CONFIG_USER_LIRC_LIRCMD is not set
++# CONFIG_USER_LIRC_IREXEC is not set
++# CONFIG_USER_LIRC_IRW is not set
++# CONFIG_USER_LIRC_MODE2 is not set
++
++#
++# Editors
++#
++# CONFIG_USER_LEVEE_VI is not set
++# CONFIG_USER_ELVISTINY_VI is not set
++
++#
++# Audio tools
++#
++# CONFIG_USER_MP3PLAY_MP3PLAY is not set
++# CONFIG_USER_OGGPLAY_OGG123 is not set
++# CONFIG_USER_OGGPLAY_EXAMPLE is not set
++# CONFIG_USER_MUSICBOX_MUSICBOX is not set
++# CONFIG_USER_PLAY_PLAY is not set
++# CONFIG_USER_PLAY_TONE is not set
++# CONFIG_USER_VPLAY_VPLAY is not set
++# CONFIG_USER_VPLAY_VREC is not set
++# CONFIG_USER_VPLAY_MIXER is not set
++# CONFIG_USER_PLAYRT_PLAYRT is not set
++
++#
++# Video tools
++#
++# CONFIG_USER_W3CAM_VIDCAT is not set
++# CONFIG_USER_W3CAM_W3CAMD is not set
++
++#
++# Fileutils tools
++#
++# CONFIG_USER_FILEUTILS_CAT is not set
++# CONFIG_USER_FILEUTILS_CHGRP is not set
++# CONFIG_USER_FILEUTILS_CHMOD is not set
++# CONFIG_USER_FILEUTILS_CHOWN is not set
++# CONFIG_USER_FILEUTILS_CMP is not set
++# CONFIG_USER_FILEUTILS_CP is not set
++# CONFIG_USER_FILEUTILS_DD is not set
++# CONFIG_USER_FILEUTILS_GREP is not set
++# CONFIG_USER_FILEUTILS_L is not set
++# CONFIG_USER_FILEUTILS_LN is not set
++# CONFIG_USER_FILEUTILS_LS is not set
++# CONFIG_USER_FILEUTILS_MKDIR is not set
++# CONFIG_USER_FILEUTILS_MKFIFO is not set
++# CONFIG_USER_FILEUTILS_MKNOD is not set
++# CONFIG_USER_FILEUTILS_MORE is not set
++# CONFIG_USER_FILEUTILS_MV is not set
++# CONFIG_USER_FILEUTILS_RM is not set
++# CONFIG_USER_FILEUTILS_RMDIR is not set
++# CONFIG_USER_FILEUTILS_SYNC is not set
++# CONFIG_USER_FILEUTILS_TOUCH is not set
++
++#
++# Shutils tools
++#
++# CONFIG_USER_SHUTILS_BASENAME is not set
++# CONFIG_USER_SHUTILS_DATE is not set
++# CONFIG_USER_SHUTILS_DIRNAME is not set
++# CONFIG_USER_SHUTILS_ECHO is not set
++# CONFIG_USER_SHUTILS_FALSE is not set
++# CONFIG_USER_SHUTILS_LOGNAME is not set
++# CONFIG_USER_SHUTILS_PRINTENV is not set
++# CONFIG_USER_SHUTILS_PWD is not set
++# CONFIG_USER_SHUTILS_TRUE is not set
++# CONFIG_USER_SHUTILS_UNAME is not set
++# CONFIG_USER_SHUTILS_WHICH is not set
++# CONFIG_USER_SHUTILS_WHOAMI is not set
++# CONFIG_USER_SHUTILS_YES is not set
++
++#
++# Sysutils tools
++#
++# CONFIG_USER_SYSUTILS_REBOOT is not set
++# CONFIG_USER_SYSUTILS_SHUTDOWN is not set
++# CONFIG_USER_SYSUTILS_DF is not set
++# CONFIG_USER_SYSUTILS_FREE is not set
++# CONFIG_USER_SYSUTILS_HOSTNAME is not set
++# CONFIG_USER_SYSUTILS_KILL is not set
++# CONFIG_USER_SYSUTILS_PS is not set
++
++#
++# Procps tools
++#
++# CONFIG_USER_PROCPS_FREE is not set
++# CONFIG_USER_PROCPS_KILL is not set
++# CONFIG_USER_PROCPS_PGREP is not set
++# CONFIG_USER_PROCPS_PKILL is not set
++# CONFIG_USER_PROCPS_PS is not set
++# CONFIG_USER_PROCPS_SNICE is not set
++# CONFIG_USER_PROCPS_SYSCTL is not set
++# CONFIG_USER_PROCPS_TLOAD is not set
++# CONFIG_USER_PROCPS_TOP is not set
++# CONFIG_USER_PROCPS_UPTIME is not set
++# CONFIG_USER_PROCPS_VMSTAT is not set
++# CONFIG_USER_PROCPS_W is not set
++# CONFIG_USER_PROCPS_WATCH is not set
++
++#
++# PCI utilities
++#
++# CONFIG_USER_PCIUTILS_LSPCI is not set
++# CONFIG_USER_PCIUTILS_SETPCI is not set
++
++#
++# BusyBox
++#
++CONFIG_USER_BUSYBOX_BUSYBOX=y
++
++#
++# Applets
++#
++# CONFIG_USER_BUSYBOX_ADJTIMEX is not set
++# CONFIG_USER_BUSYBOX_AR is not set
++# CONFIG_USER_BUSYBOX_BASENAME is not set
++CONFIG_USER_BUSYBOX_CAT=y
++# CONFIG_USER_BUSYBOX_CHGRP is not set
++# CONFIG_USER_BUSYBOX_CHMOD is not set
++# CONFIG_USER_BUSYBOX_CHOWN is not set
++# CONFIG_USER_BUSYBOX_CHROOT is not set
++# CONFIG_USER_BUSYBOX_CLEAR is not set
++# CONFIG_USER_BUSYBOX_CMP is not set
++CONFIG_USER_BUSYBOX_CP=y
++# CONFIG_USER_BUSYBOX_CUT is not set
++# CONFIG_USER_BUSYBOX_DATE is not set
++# CONFIG_USER_BUSYBOX_DC is not set
++# CONFIG_USER_BUSYBOX_DD is not set
++# CONFIG_USER_BUSYBOX_DF is not set
++# CONFIG_USER_BUSYBOX_DIRNAME is not set
++# CONFIG_USER_BUSYBOX_DMESG is not set
++# CONFIG_USER_BUSYBOX_DUTMP is not set
++CONFIG_USER_BUSYBOX_DU=y
++CONFIG_USER_BUSYBOX_ECHO=y
++CONFIG_USER_BUSYBOX_ENV=y
++# CONFIG_USER_BUSYBOX_EXPR is not set
++# CONFIG_USER_BUSYBOX_FIND is not set
++# CONFIG_USER_BUSYBOX_FREE is not set
++# CONFIG_USER_BUSYBOX_FREERAMDISK is not set
++# CONFIG_USER_BUSYBOX_FSCK_MINIX is not set
++# CONFIG_USER_BUSYBOX_GETOPT is not set
++# CONFIG_USER_BUSYBOX_GREP is not set
++# CONFIG_USER_BUSYBOX_GUNZIP is not set
++# CONFIG_USER_BUSYBOX_GZIP is not set
++# CONFIG_USER_BUSYBOX_HALT is not set
++# CONFIG_USER_BUSYBOX_HEAD is not set
++CONFIG_USER_BUSYBOX_HOSTNAME=y
++# CONFIG_USER_BUSYBOX_ID is not set
++CONFIG_USER_BUSYBOX_IFCONFIG=y
++CONFIG_USER_BUSYBOX_IFCONFIG_STATUS=y
++# CONFIG_USER_BUSYBOX_IFCONFIG_SLIP is not set
++# CONFIG_USER_BUSYBOX_IFCONFIG_HW is not set
++# CONFIG_USER_BUSYBOX_IFCONFIG_MEMSTART_IOADDR_IRQ is not set
++# CONFIG_USER_BUSYBOX_INIT is not set
++CONFIG_USER_BUSYBOX_INSMOD=y
++# CONFIG_USER_BUSYBOX_INSMOD_LOADINKMEM is not set
++CONFIG_USER_BUSYBOX_INSMOD_LOAD_MAP=y
++CONFIG_USER_BUSYBOX_INSMOD_LOAD_MAP_FULL=y
++CONFIG_USER_BUSYBOX_KILL=y
++CONFIG_USER_BUSYBOX_KILLALL=y
++# CONFIG_USER_BUSYBOX_KLOGD is not set
++# CONFIG_USER_BUSYBOX_LENGTH is not set
++# CONFIG_USER_BUSYBOX_LN is not set
++# CONFIG_USER_BUSYBOX_LOGGER is not set
++# CONFIG_USER_BUSYBOX_LOGNAME is not set
++CONFIG_USER_BUSYBOX_LS=y
++# CONFIG_USER_BUSYBOX_LS_USERNAME is not set
++CONFIG_USER_BUSYBOX_LS_TIMESTAMPS=y
++CONFIG_USER_BUSYBOX_LS_FILETYPES=y
++CONFIG_USER_BUSYBOX_LS_SORTFILES=y
++# CONFIG_USER_BUSYBOX_LS_RECURSIVE is not set
++# CONFIG_USER_BUSYBOX_LS_FOLLOWLINKS is not set
++CONFIG_USER_BUSYBOX_LSMOD=y
++# CONFIG_USER_BUSYBOX_MAKEDEVS is not set
++# CONFIG_USER_BUSYBOX_MD5SUM is not set
++CONFIG_USER_BUSYBOX_MKDIR=y
++# CONFIG_USER_BUSYBOX_MKFS_MINIX is not set
++# CONFIG_USER_BUSYBOX_MKNOD is not set
++# CONFIG_USER_BUSYBOX_MKTEMP is not set
++# CONFIG_USER_BUSYBOX_MODPROBE is not set
++# CONFIG_USER_BUSYBOX_MORE is not set
++CONFIG_USER_BUSYBOX_MOUNT=y
++# CONFIG_USER_BUSYBOX_MOUNT_LOOP is not set
++# CONFIG_USER_BUSYBOX_MTAB_SUPPORT is not set
++CONFIG_USER_BUSYBOX_NFSMOUNT=y
++# CONFIG_USER_BUSYBOX_MV is not set
++# CONFIG_USER_BUSYBOX_NC is not set
++CONFIG_USER_BUSYBOX_NSLOOKUP=y
++# CONFIG_USER_BUSYBOX_PIDOF is not set
++CONFIG_USER_BUSYBOX_PING=y
++CONFIG_USER_BUSYBOX_FANCY_PING=y
++# CONFIG_USER_BUSYBOX_PIVOT_ROOT is not set
++# CONFIG_USER_BUSYBOX_POWEROFF is not set
++# CONFIG_USER_BUSYBOX_PRINTF is not set
++CONFIG_USER_BUSYBOX_PS=y
++# CONFIG_USER_BUSYBOX_PWD is not set
++# CONFIG_USER_BUSYBOX_RDATE is not set
++# CONFIG_USER_BUSYBOX_READLINK is not set
++# CONFIG_USER_BUSYBOX_REBOOT is not set
++# CONFIG_USER_BUSYBOX_RENICE is not set
++# CONFIG_USER_BUSYBOX_RESET is not set
++CONFIG_USER_BUSYBOX_RM=y
++# CONFIG_USER_BUSYBOX_RMDIR is not set
++CONFIG_USER_BUSYBOX_RMMOD=y
++CONFIG_USER_BUSYBOX_ROUTE=y
++# CONFIG_USER_BUSYBOX_RPM2CPIO is not set
++# CONFIG_USER_BUSYBOX_SED is not set
++# CONFIG_USER_BUSYBOX_SHELL is not set
++# CONFIG_USER_BUSYBOX_SLEEP is not set
++# CONFIG_USER_BUSYBOX_SORT is not set
++# CONFIG_USER_BUSYBOX_STTY is not set
++# CONFIG_USER_BUSYBOX_SYNC is not set
++# CONFIG_USER_BUSYBOX_SYSLOGD is not set
++# CONFIG_USER_BUSYBOX_TAIL is not set
++# CONFIG_USER_BUSYBOX_TAR is not set
++# CONFIG_USER_BUSYBOX_TEE is not set
++# CONFIG_USER_BUSYBOX_TELNET is not set
++# CONFIG_USER_BUSYBOX_TEST is not set
++# CONFIG_USER_BUSYBOX_TFTP is not set
++# CONFIG_USER_BUSYBOX_TOUCH is not set
++# CONFIG_USER_BUSYBOX_TR is not set
++CONFIG_USER_BUSYBOX_TRACEROUTE=y
++# CONFIG_USER_BUSYBOX_TRUE_FALSE is not set
++# CONFIG_USER_BUSYBOX_TTY is not set
++# CONFIG_USER_BUSYBOX_UMOUNT is not set
++# CONFIG_USER_BUSYBOX_UNAME is not set
++# CONFIG_USER_BUSYBOX_UNIQ is not set
++# CONFIG_USER_BUSYBOX_UNIX2DOS is not set
++# CONFIG_USER_BUSYBOX_UPTIME is not set
++# CONFIG_USER_BUSYBOX_USLEEP is not set
++# CONFIG_USER_BUSYBOX_UUDECODE is not set
++# CONFIG_USER_BUSYBOX_UUENCODE is not set
++# CONFIG_USER_BUSYBOX_VI is not set
++# CONFIG_USER_BUSYBOX_WATCHDOG is not set
++# CONFIG_USER_BUSYBOX_WC is not set
++# CONFIG_USER_BUSYBOX_WGET is not set
++CONFIG_USER_BUSYBOX_WHICH=y
++# CONFIG_USER_BUSYBOX_WHOAMI is not set
++# CONFIG_USER_BUSYBOX_XARGS is not set
++# CONFIG_USER_BUSYBOX_YES is not set
++
++#
++# other features
++#
++# CONFIG_USER_BUSYBOX_VERBOSE_USAGE is not set
++# CONFIG_USER_BUSYBOX_AUTOWIDTH is not set
++# CONFIG_USER_BUSYBOX_NEW_MODULE_INTERFACE is not set
++# CONFIG_USER_BUSYBOX_OLD_MODULE_INTERFACE is not set
++# CONFIG_USER_BUSYBOX_INSMOD_VERSION_CHECKING is not set
++# CONFIG_USER_BUSYBOX_HUMAN_READABLE is not set
++
++#
++# Tinylogin
++#
++# CONFIG_USER_TINYLOGIN_TINYLOGIN is not set
++
++#
++# MicroWindows
++#
++# CONFIG_USER_MICROWIN is not set
++
++#
++# Games
++#
++# CONFIG_USER_GAMES_ADVENT4 is not set
++# CONFIG_USER_GAMES_DUNGEON is not set
++# CONFIG_USER_GAMES_RUBIK is not set
++
++#
++# Miscellaneous Configuration
++#
++# CONFIG_USER_RAMIMAGE_NONE is not set
++# CONFIG_USER_RAMIMAGE_RAMFS64 is not set
++CONFIG_USER_RAMIMAGE_RAMFS128=y
++# CONFIG_USER_RAMIMAGE_RAMFS256 is not set
++# CONFIG_USER_RAMIMAGE_RAMFS512 is not set
++# CONFIG_USER_RAMIMAGE_RAMFS1024 is not set
++# CONFIG_USER_RAMIMAGE_RAMFS2048 is not set
++# CONFIG_USER_CGI_GENERIC is not set
++# CONFIG_USER_CGIHTML is not set
++# CONFIG_USER_DEMO_BUTTON is not set
++# CONFIG_USER_DEMO_LATCH is not set
++# CONFIG_USER_DEMO_MORSE is not set
++# CONFIG_USER_DEMO_R2100 is not set
++
++#
++# Debug Builds
++#
++# CONFIG_LIB_DEBUG is not set
++# CONFIG_USER_DEBUG is not set
++
++#
++# Debug tools
++#
++# CONFIG_USER_TIMEPEG_TPT is not set
++
++#
++# Debug libraries
++#
++# CONFIG_LIB_LIBCCMALLOC is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.vendor uClinux-dist/vendors/Marvell/Libertas/config.vendor
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.vendor	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.vendor	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,446 @@
++#
++# Automatically generated make config: don't edit
++#
++
++#
++# Core Applications
++#
++CONFIG_USER_INIT_INIT=y
++CONFIG_USER_INIT_CONSOLE_SH=y
++# CONFIG_USER_INIT_RUN_FIREWALL is not set
++CONFIG_USER_SASH_SH=y
++# CONFIG_USER_SH_SH is not set
++# CONFIG_USER_NWSH_SH is not set
++# CONFIG_USER_BASH_BASH is not set
++# CONFIG_USER_OTHER_SH is not set
++# CONFIG_USER_SASH_HISTORY is not set
++CONFIG_USER_SASH_REBOOT=y
++# CONFIG_USER_SASH_SHUTDOWN is not set
++CONFIG_USER_INIT_EXPAND=y
++# CONFIG_USER_INIT_EXPAND_NOZEROES is not set
++# CONFIG_USER_VERSION_VERSION is not set
++CONFIG_USER_LOGIN_LOGIN=y
++# CONFIG_USER_AGETTY_AGETTY is not set
++# CONFIG_USER_GETTYD_GETTYD is not set
++# CONFIG_USER_LOGIN_PASSWD is not set
++# CONFIG_USER_CRON_CRON is not set
++
++#
++# Flash Tools
++#
++# CONFIG_USER_FLASHW_FLASHW is not set
++# CONFIG_USER_NETFLASH_NETFLASH is not set
++# CONFIG_USER_RECOVER_RECOVER is not set
++# CONFIG_USER_BOOTTOOLS_FLASHLOADER is not set
++# CONFIG_USER_BOOTTOOLS_HIMEMLOADER is not set
++
++#
++# MTD utils
++#
++# CONFIG_USER_MTDUTILS is not set
++# CONFIG_USER_MTDUTILS_ERASE is not set
++# CONFIG_USER_MTDUTILS_ERASEALL is not set
++# CONFIG_USER_MTDUTILS_FTL_CHECK is not set
++# CONFIG_USER_MTDUTILS_FTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NFTLDUMP is not set
++# CONFIG_USER_MTDUTILS_NFTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NANDDUMP is not set
++# CONFIG_USER_MTDUTILS_NANDTEST is not set
++# CONFIG_USER_MTDUTILS_NANDWRITE is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADBIOS is not set
++
++#
++# Real Time Clock
++#
++# CONFIG_USER_HWCLOCK_HWCLOCK is not set
++# CONFIG_USER_RTC_M41T11 is not set
++# CONFIG_USER_RTC_DS1302 is not set
++
++#
++# Vixie-cron
++#
++# CONFIG_USER_VIXIECRON_CRON is not set
++# CONFIG_USER_VIXIECRON_CRONTAB is not set
++
++#
++# at
++#
++# CONFIG_USER_AT_AT is not set
++# CONFIG_USER_AT_ATD is not set
++# CONFIG_USER_AT_ATRUN is not set
++
++#
++# Force library building (Normally built when required)
++#
++# CONFIG_LIB_LIBDES_FORCE is not set
++# CONFIG_LIB_LIBSSL_FORCE is not set
++# CONFIG_LIB_LIBGMP_FORCE is not set
++# CONFIG_LIB_LIBG_FORCE is not set
++# CONFIG_LIB_LIBPAM_FORCE is not set
++# CONFIG_LIB_LIBPCAP_FORCE is not set
++# CONFIG_LIB_ZLIB_FORCE is not set
++# CONFIG_LIB_LIBATM_FORCE is not set
++# CONFIG_LIB_LIBPNG_FORCE is not set
++# CONFIG_LIB_LIBJPEG_FORCE is not set
++# CONFIG_LIB_NCURSES_FORCE is not set
++# CONFIG_LIB_UC_LIBC_TIMEZONE is not set
++
++#
++# Filesystem Applications
++#
++# CONFIG_USER_FLATFSD_FLATFSD is not set
++# CONFIG_USER_FLATFSD_USE_FLASH_FS is not set
++# CONFIG_USER_MOUNT_MOUNT is not set
++# CONFIG_USER_MOUNT_UMOUNT is not set
++# CONFIG_USER_FDISK_FDISK is not set
++
++#
++# EXT2
++#
++# CONFIG_USER_E2FSPROGS_E2FSCK_E2FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_BADBLOCKS is not set
++# CONFIG_USER_E2FSPROGS_MISC_CHATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_DUMPE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_E2LABEL is not set
++# CONFIG_USER_E2FSPROGS_MISC_FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_LSATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKLOST_FOUND is not set
++# CONFIG_USER_E2FSPROGS_MISC_TUNE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_UUIDGEN is not set
++
++#
++# RESIERFS
++#
++# CONFIG_USER_REISERFSPROGS is not set
++# CONFIG_USER_REISERFSPROGS_DEBUGRESIERFS is not set
++# CONFIG_USER_REISERFSPROGS_MKREISERFS is not set
++# CONFIG_USER_REISERFSPROGS_REISERFSCK is not set
++# CONFIG_USER_REISERFSPROGS_RESIZE_REISERFS is not set
++# CONFIG_USER_REISERFSPROGS_UNPACK is not set
++
++#
++# SAMBA
++#
++# CONFIG_USER_SAMBA is not set
++# CONFIG_USER_SAMBA_SMBD is not set
++# CONFIG_USER_SAMBA_NMBD is not set
++# CONFIG_USER_SAMBA_SMBMOUNT is not set
++# CONFIG_USER_SAMBA_SMBUMOUNT is not set
++
++#
++# SMBFS
++#
++# CONFIG_USER_SMBMOUNT_SMBMOUNT is not set
++# CONFIG_USER_SMBMOUNT_SMBUMOUNT is not set
++# CONFIG_USER_CRAMFS_CRAMFSCK is not set
++# CONFIG_USER_CRAMFS_MKCRAMFS is not set
++
++#
++# Network Applications
++#
++# CONFIG_USER_ROUTE_ARP is not set
++CONFIG_USER_BOA_SRC_BOA=y
++# CONFIG_USER_BOA_WITH_SSL is not set
++# CONFIG_USER_BPALOGIN_BPALOGIN is not set
++# CONFIG_USER_BR2684CTL_BR2684CTL is not set
++# CONFIG_USER_BRCFG_BRCFG is not set
++# CONFIG_USER_CERBERIAN_CERBERIAN is not set
++# CONFIG_USER_CERBERIAN_CERBLITE is not set
++# CONFIG_USER_CERBERIAN_MYLITE is not set
++# CONFIG_USER_CERBERIAN_CERBTEST is not set
++# CONFIG_USER_DHCPCD_DHCPCD is not set
++CONFIG_USER_DHCPCD_NEW_DHCPCD=y
++# CONFIG_USER_DHCPD_DHCPD is not set
++# CONFIG_USER_DHCP_ISC_SERVER_DHCPD is not set
++# CONFIG_USER_DHCP_ISC_CLIENT_DHCP is not set
++# CONFIG_USER_DIALD_DIALD is not set
++# CONFIG_USER_DISCARD_DISCARD is not set
++# CONFIG_USER_DNSMASQ_DNSMASQ is not set
++# CONFIG_USER_ETHATTACH_ETHATTACH is not set
++# CONFIG_USER_EZIPUPDATE_EZIPUPDATE is not set
++# CONFIG_USER_FTP_FTP_FTP is not set
++# CONFIG_USER_FREESWAN is not set
++# CONFIG_USER_HTTPD_HTTPD is not set
++# CONFIG_USER_IDB_IDB is not set
++# CONFIG_USER_IFATTACH_IFATTACH is not set
++CONFIG_USER_ROUTE_IFCONFIG=y
++# CONFIG_USER_IFMOND_IFMOND is not set
++# CONFIG_USER_NEWIFMOND_IFMOND is not set
++CONFIG_USER_INETD_INETD=y
++# CONFIG_USER_IPCHAINS_IPCHAINS is not set
++# CONFIG_USER_IPFWADM_IPFWADM is not set
++# CONFIG_USER_IPMASQADM_IPMASQADM is not set
++# CONFIG_USER_IPPORTFW_IPPORTFW is not set
++# CONFIG_USER_IPREDIR_IPREDIR is not set
++# CONFIG_USER_IPROUTE2 is not set
++# CONFIG_USER_IPTABLES_IPTABLES is not set
++# CONFIG_USER_KLAXON_KLAXON is not set
++# CONFIG_USER_SMTP_SMTPCLIENT is not set
++# CONFIG_USER_MAIL_MAIL_IP is not set
++# CONFIG_USER_MARADNS_MARADNS is not set
++# CONFIG_USER_MINI_HTTPD_MINI_HTTPD is not set
++# CONFIG_USER_L2TPD_L2TPD is not set
++# CONFIG_USER_LOATTACH_LOATTACH is not set
++# CONFIG_USER_MSNTP_MSNTP is not set
++# CONFIG_USER_ROUTE_NETSTAT is not set
++# CONFIG_USER_NETSTAT_NAT_NETSTAT_NAT is not set
++# CONFIG_USER_MARADNS_ZONESERVER is not set
++# CONFIG_USER_ROUTE_MIITOOL is not set
++CONFIG_USER_PING_PING=y
++# CONFIG_USER_PLUG_PLUG is not set
++# CONFIG_USER_PORTMAP_PORTMAP is not set
++# CONFIG_USER_PPPD_PPPD_PPPD is not set
++# CONFIG_USER_PPTPD_PPTPCTRL is not set
++# CONFIG_USER_PPTPD_PPTPD is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP_CALLMGR is not set
++# CONFIG_USER_RDATE_RDATE is not set
++# CONFIG_USER_MGMT_MGMT is not set
++# CONFIG_USER_SGSNMPD_AGENT is not set
++# CONFIG_USER_SGSNMPD_SNAPGEAR is not set
++# CONFIG_USER_SGSNMPD_SG100 is not set
++# CONFIG_USER_REDIALER_REDIALER is not set
++CONFIG_USER_ROUTE_ROUTE=y
++# CONFIG_USER_ROUTED_ROUTED is not set
++# CONFIG_USER_RP_PPPOE_PPPOE is not set
++# CONFIG_USER_SETHDLC_SETHDLC is not set
++# CONFIG_USER_SLATTACH_SLATTACH is not set
++# CONFIG_USER_SNMPD_SNMPD is not set
++# CONFIG_USER_SNORT_SNORT is not set
++# CONFIG_USER_STUNNEL_STUNNEL is not set
++# CONFIG_USER_SQUID_SQUID is not set
++# CONFIG_USER_SSH_SSH is not set
++# CONFIG_USER_SSH_SSHD is not set
++# CONFIG_USER_SSH_SSHKEYGEN is not set
++# CONFIG_USER_STP_STP is not set
++# CONFIG_USER_TCPWRAP_TCPD is not set
++# CONFIG_USER_TCPBLAST_TCPBLAST is not set
++# CONFIG_USER_TCPDUMP_TCPDUMP is not set
++CONFIG_USER_TELNETD_TELNETD=y
++# CONFIG_USER_TELNET_TELNET is not set
++# CONFIG_USER_TFTP_TFTP is not set
++# CONFIG_USER_TFTPD_TFTPD is not set
++# CONFIG_USER_THTTPD_THTTPD is not set
++# CONFIG_USER_TRACEROUTE_TRACEROUTE is not set
++# CONFIG_USER_UCDSNMP_SNMPD is not set
++# CONFIG_USER_UPNPD is not set
++# CONFIG_USER_VPNLED_VPNLED is not set
++# CONFIG_USER_WGET is not set
++# CONFIG_USER_WINSD_WS is not set
++# CONFIG_USER_ZEBRA_ZEBRA_ZEBRA is not set
++
++#
++# Net-tools
++#
++# CONFIG_USER_NET_TOOLS_ARP is not set
++# CONFIG_USER_NET_TOOLS_HOSTNAME is not set
++# CONFIG_USER_NET_TOOLS_IFCONFIG is not set
++# CONFIG_USER_NET_TOOLS_NAMEIF is not set
++# CONFIG_USER_NET_TOOLS_NETSTAT is not set
++# CONFIG_USER_NET_TOOLS_PLIPCONFIG is not set
++# CONFIG_USER_NET_TOOLS_RARP is not set
++# CONFIG_USER_NET_TOOLS_ROUTE is not set
++# CONFIG_USER_NET_TOOLS_SLATTACH is not set
++# CONFIG_USER_NET_TOOLS_MII_TOOL is not set
++
++#
++# Wireless-tools
++#
++# CONFIG_USER_WIRELESS_TOOLS is not set
++
++#
++# Miscellaneous Applications
++#
++# CONFIG_USER_LANG_A60 is not set
++# CONFIG_USER_CAL_CAL is not set
++# CONFIG_USER_CHAT_CHAT is not set
++# CONFIG_USER_CKSUM_CKSUM is not set
++# CONFIG_USER_CLOCK_CLOCK is not set
++# CONFIG_USER_CPU_CPU is not set
++# CONFIG_USER_CAL_DATE is not set
++# CONFIG_USER_DESTEST_DESTEST is not set
++# CONFIG_USER_DESTEST_DESPERF is not set
++# CONFIG_USER_DHRYSTONE_DHRYSTONE is not set
++# CONFIG_USER_FACTORY_FACTTEST is not set
++# CONFIG_USER_FROB_LED_FROB_LED is not set
++# CONFIG_USER_GDBSERVER_GDBREPLAY is not set
++CONFIG_USER_GDBSERVER_GDBSERVER=y
++# CONFIG_USER_HD_HD is not set
++# CONFIG_USER_LCD_LCD is not set
++# CONFIG_USER_LEDCON_LEDCON is not set
++# CONFIG_USER_LILO_LILO is not set
++# CONFIG_USER_LISSA_LISSA is not set
++# CONFIG_USER_MATH_TEST is not set
++# CONFIG_USER_MAWK_AWK is not set
++# CONFIG_USER_NULL_NULL is not set
++# CONFIG_USER_PALMBOT_PALMBOT is not set
++# CONFIG_USER_PCMCIA_CS is not set
++# CONFIG_USER_PERL_PERL is not set
++# CONFIG_USER_PYTHON_PYTHON is not set
++# CONFIG_USER_READPROFILE_READPROFILE is not set
++# CONFIG_USER_ROOTLOADER_ROOTLOADER is not set
++# CONFIG_USER_SETSERIAL_SETSERIAL is not set
++# CONFIG_USER_TRIPWIRE_SIGGEN is not set
++# CONFIG_USER_STRACE_STRACE is not set
++# CONFIG_USER_STTY_STTY is not set
++# CONFIG_USER_TCSH_TCSH is not set
++# CONFIG_USER_THREADDEMOS_THREADDEMOS is not set
++# CONFIG_USER_TIP_TIP is not set
++# CONFIG_USER_TRIPWIRE_TRIPWIRE is not set
++
++#
++# LIRC
++#
++# CONFIG_USER_LIRC is not set
++# CONFIG_USER_LIRC_LIRCD is not set
++# CONFIG_USER_LIRC_IRRECORD is not set
++# CONFIG_USER_LIRC_LIRCMD is not set
++# CONFIG_USER_LIRC_IREXEC is not set
++# CONFIG_USER_LIRC_IRW is not set
++# CONFIG_USER_LIRC_MODE2 is not set
++
++#
++# Editors
++#
++# CONFIG_USER_LEVEE_VI is not set
++# CONFIG_USER_ELVISTINY_VI is not set
++
++#
++# Audio tools
++#
++# CONFIG_USER_MP3PLAY_MP3PLAY is not set
++# CONFIG_USER_OGGPLAY_OGG123 is not set
++# CONFIG_USER_OGGPLAY_EXAMPLE is not set
++# CONFIG_USER_SETKEY_SETKEY is not set
++# CONFIG_USER_MUSICBOX_MUSICBOX is not set
++# CONFIG_USER_PLAY_PLAY is not set
++# CONFIG_USER_PLAY_TONE is not set
++# CONFIG_USER_VPLAY_VPLAY is not set
++# CONFIG_USER_VPLAY_VREC is not set
++# CONFIG_USER_VPLAY_MIXER is not set
++# CONFIG_USER_PLAYRT_PLAYRT is not set
++# CONFIG_USER_W3CAM_VIDCAT is not set
++# CONFIG_USER_W3CAM_W3CAMD is not set
++
++#
++# Fileutils tools
++#
++# CONFIG_USER_FILEUTILS_CAT is not set
++# CONFIG_USER_FILEUTILS_CHGRP is not set
++# CONFIG_USER_FILEUTILS_CHMOD is not set
++# CONFIG_USER_FILEUTILS_CHOWN is not set
++# CONFIG_USER_FILEUTILS_CMP is not set
++# CONFIG_USER_FILEUTILS_CP is not set
++# CONFIG_USER_FILEUTILS_DD is not set
++# CONFIG_USER_FILEUTILS_GREP is not set
++# CONFIG_USER_FILEUTILS_L is not set
++# CONFIG_USER_FILEUTILS_LN is not set
++# CONFIG_USER_FILEUTILS_LS is not set
++# CONFIG_USER_FILEUTILS_MKDIR is not set
++# CONFIG_USER_FILEUTILS_MKFIFO is not set
++# CONFIG_USER_FILEUTILS_MKNOD is not set
++# CONFIG_USER_FILEUTILS_MORE is not set
++# CONFIG_USER_FILEUTILS_MV is not set
++# CONFIG_USER_FILEUTILS_RM is not set
++# CONFIG_USER_FILEUTILS_RMDIR is not set
++# CONFIG_USER_FILEUTILS_SYNC is not set
++# CONFIG_USER_FILEUTILS_TOUCH is not set
++
++#
++# Shutils tools
++#
++# CONFIG_USER_SHUTILS_BASENAME is not set
++# CONFIG_USER_SHUTILS_DATE is not set
++# CONFIG_USER_SHUTILS_DIRNAME is not set
++# CONFIG_USER_SHUTILS_ECHO is not set
++# CONFIG_USER_SHUTILS_FALSE is not set
++# CONFIG_USER_SHUTILS_LOGNAME is not set
++# CONFIG_USER_SHUTILS_PRINTENV is not set
++# CONFIG_USER_SHUTILS_PWD is not set
++# CONFIG_USER_SHUTILS_TRUE is not set
++# CONFIG_USER_SHUTILS_UNAME is not set
++# CONFIG_USER_SHUTILS_WHICH is not set
++# CONFIG_USER_SHUTILS_WHOAMI is not set
++# CONFIG_USER_SHUTILS_YES is not set
++
++#
++# Sysutils tools
++#
++# CONFIG_USER_SYSUTILS_REBOOT is not set
++# CONFIG_USER_SYSUTILS_SHUTDOWN is not set
++# CONFIG_USER_SYSUTILS_DF is not set
++# CONFIG_USER_SYSUTILS_FREE is not set
++# CONFIG_USER_SYSUTILS_HOSTNAME is not set
++# CONFIG_USER_SYSUTILS_KILL is not set
++# CONFIG_USER_SYSUTILS_PS is not set
++
++#
++# Procps tools
++#
++# CONFIG_USER_PROCPS_FREE is not set
++# CONFIG_USER_PROCPS_KILL is not set
++# CONFIG_USER_PROCPS_PGREP is not set
++# CONFIG_USER_PROCPS_PKILL is not set
++# CONFIG_USER_PROCPS_PS is not set
++# CONFIG_USER_PROCPS_SNICE is not set
++# CONFIG_USER_PROCPS_SYSCTL is not set
++# CONFIG_USER_PROCPS_TLOAD is not set
++# CONFIG_USER_PROCPS_TOP is not set
++# CONFIG_USER_PROCPS_UPTIME is not set
++# CONFIG_USER_PROCPS_VMSTAT is not set
++# CONFIG_USER_PROCPS_W is not set
++# CONFIG_USER_PROCPS_WATCH is not set
++
++#
++# PCI utilities
++#
++# CONFIG_USER_PCIUTILS_LSPCI is not set
++# CONFIG_USER_PCIUTILS_SETPCI is not set
++
++#
++# BusyBox
++#
++# CONFIG_USER_BUSYBOX_BUSYBOX is not set
++
++#
++# Tinylogin
++#
++# CONFIG_USER_TINYLOGIN_TINYLOGIN is not set
++
++#
++# MicroWindows
++#
++# CONFIG_USER_MICROWIN is not set
++
++#
++# Games
++#
++# CONFIG_USER_GAMES_ADVENT4 is not set
++# CONFIG_USER_GAMES_DUNGEON is not set
++# CONFIG_USER_GAMES_XMAME is not set
++
++#
++# Miscellaneous Configuration
++#
++# CONFIG_USER_RAMIMAGE_NONE is not set
++# CONFIG_USER_RAMIMAGE_RAMFS64 is not set
++CONFIG_USER_RAMIMAGE_RAMFS128=y
++# CONFIG_USER_RAMIMAGE_RAMFS256 is not set
++# CONFIG_USER_CGI_GENERIC is not set
++# CONFIG_USER_CGI is not set
++# CONFIG_USER_CGI_DISKTEL is not set
++# CONFIG_USER_NEWCGI is not set
++# CONFIG_USER_FIREWALL_TOOLS is not set
++
++#
++# Debug Builds
++#
++# CONFIG_LIB_DEBUG is not set
++# CONFIG_USER_DEBUG is not set
++
++#
++# Debug tools
++#
++# CONFIG_USER_PROTECT is not set
++# CONFIG_USER_TIMEPEG_TPT is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/config.vendor-2.4.x uClinux-dist/vendors/Marvell/Libertas/config.vendor-2.4.x
+--- uClinux-dist.orig/vendors/Marvell/Libertas/config.vendor-2.4.x	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/config.vendor-2.4.x	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,559 @@
++#
++# Automatically generated by make menuconfig: don't edit
++#
++
++#
++# Core Applications
++#
++# CONFIG_USER_INIT_INIT is not set
++# CONFIG_USER_INIT_CONSOLE_SH is not set
++# CONFIG_USER_INIT_RUN_FIREWALL is not set
++CONFIG_USER_SASH_SH=y
++# CONFIG_USER_SH_SH is not set
++# CONFIG_USER_NWSH_SH is not set
++# CONFIG_USER_BASH_BASH is not set
++# CONFIG_USER_OTHER_SH is not set
++# CONFIG_USER_SASH_HISTORY is not set
++# CONFIG_USER_SASH_REBOOT is not set
++# CONFIG_USER_SASH_REBOOT_SNAPGEAR is not set
++CONFIG_USER_BUSYBOX_KILLALL=y
++# CONFIG_USER_SASH_SHUTDOWN is not set
++# CONFIG_USER_INIT_EXPAND is not set
++# CONFIG_USER_VERSION_VERSION is not set
++# CONFIG_USER_LOGIN_LOGIN is not set
++# CONFIG_USER_OLD_PASSWORDS is not set
++# CONFIG_USER_ONLY_ROOT is not set
++# CONFIG_USER_AGETTY_AGETTY is not set
++# CONFIG_USER_GETTYD_GETTYD is not set
++# CONFIG_USER_LOGIN_PASSWD is not set
++# CONFIG_USER_CRON_CRON is not set
++# CONFIG_USER_HWCLOCK_HWCLOCK is not set
++# CONFIG_USER_RTC_M41T11 is not set
++# CONFIG_USER_RTC_DS1302 is not set
++# CONFIG_USER_VIXIECRON_CRON is not set
++# CONFIG_USER_VIXIECRON_CRONTAB is not set
++# CONFIG_USER_AT_AT is not set
++# CONFIG_USER_AT_ATD is not set
++# CONFIG_USER_AT_ATRUN is not set
++
++#
++# Library Configuration
++#
++# CONFIG_LIB_LIBAES_FORCE is not set
++# CONFIG_LIB_LIBDES_FORCE is not set
++# CONFIG_LIB_LIBSSL_FORCE is not set
++# CONFIG_LIB_LIBGMP_FORCE is not set
++# CONFIG_LIB_LIBG_FORCE is not set
++# CONFIG_LIB_LIBLDAP_FORCE is not set
++# CONFIG_LIB_LIBPAM_FORCE is not set
++CONFIG_LIB_LIBPCAP_FORCE=y
++CONFIG_LIB_ZLIB_FORCE=y
++# CONFIG_LIB_LIBATM_FORCE is not set
++# CONFIG_LIB_LIBPNG_FORCE is not set
++# CONFIG_LIB_LIBJPEG_FORCE is not set
++# CONFIG_LIB_NCURSES_FORCE is not set
++# CONFIG_LIB_UC_LIBC_TIMEZONE is not set
++
++#
++# Flash Tools
++#
++# CONFIG_USER_FLASHW_FLASHW is not set
++# CONFIG_USER_NETFLASH_NETFLASH is not set
++# CONFIG_USER_RECOVER_RECOVER is not set
++# CONFIG_USER_BOOTTOOLS_FLASHLOADER is not set
++# CONFIG_USER_BOOTTOOLS_HIMEMLOADER is not set
++# CONFIG_USER_MTDUTILS is not set
++# CONFIG_USER_MTDUTILS_ERASE is not set
++# CONFIG_USER_MTDUTILS_ERASEALL is not set
++# CONFIG_USER_MTDUTILS_FTL_CHECK is not set
++# CONFIG_USER_MTDUTILS_FTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_MKFSJFFS is not set
++# CONFIG_USER_MTDUTILS_MKFSJFFS2 is not set
++# CONFIG_USER_MTDUTILS_NFTLDUMP is not set
++# CONFIG_USER_MTDUTILS_NFTL_FORMAT is not set
++# CONFIG_USER_MTDUTILS_NANDDUMP is not set
++# CONFIG_USER_MTDUTILS_NANDTEST is not set
++# CONFIG_USER_MTDUTILS_NANDWRITE is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADBIOS is not set
++# CONFIG_USER_MTDUTILS_DOC_LOADIPL is not set
++
++#
++# Filesystem Applications
++#
++# CONFIG_USER_FLATFSD_FLATFSD is not set
++# CONFIG_USER_MOUNT_MOUNT is not set
++# CONFIG_USER_MOUNT_UMOUNT is not set
++# CONFIG_USER_FDISK_FDISK is not set
++# CONFIG_USER_E2FSPROGS_E2FSCK_E2FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_BADBLOCKS is not set
++# CONFIG_USER_E2FSPROGS_MISC_CHATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_DUMPE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_E2LABEL is not set
++# CONFIG_USER_E2FSPROGS_MISC_FSCK is not set
++# CONFIG_USER_E2FSPROGS_MISC_LSATTR is not set
++# CONFIG_USER_E2FSPROGS_MISC_MKLOST_FOUND is not set
++# CONFIG_USER_E2FSPROGS_MISC_TUNE2FS is not set
++# CONFIG_USER_E2FSPROGS_MISC_UUIDGEN is not set
++# CONFIG_USER_REISERFSPROGS is not set
++# CONFIG_USER_REISERFSPROGS_DEBUGRESIERFS is not set
++# CONFIG_USER_REISERFSPROGS_MKREISERFS is not set
++# CONFIG_USER_REISERFSPROGS_REISERFSCK is not set
++# CONFIG_USER_REISERFSPROGS_RESIZE_REISERFS is not set
++# CONFIG_USER_REISERFSPROGS_UNPACK is not set
++# CONFIG_USER_SAMBA is not set
++# CONFIG_USER_SAMBA_SMBD is not set
++# CONFIG_USER_SAMBA_NMBD is not set
++# CONFIG_USER_SAMBA_SMBMOUNT is not set
++# CONFIG_USER_SAMBA_SMBUMOUNT is not set
++# CONFIG_USER_SMBMOUNT_SMBMOUNT is not set
++# CONFIG_USER_SMBMOUNT_SMBUMOUNT is not set
++# CONFIG_USER_CRAMFS_CRAMFSCK is not set
++# CONFIG_USER_CRAMFS_MKCRAMFS is not set
++
++#
++# Network Applications
++#
++# CONFIG_USER_ROUTE_ARP is not set
++# CONFIG_USER_BOA_SRC_BOA is not set
++# CONFIG_USER_BPALOGIN_BPALOGIN is not set
++# CONFIG_USER_BR2684CTL_BR2684CTL is not set
++# CONFIG_USER_BRCFG_BRCFG is not set
++# CONFIG_USER_BRCTL_BRCTL is not set
++# CONFIG_USER_DHCPCD_DHCPCD is not set
++# CONFIG_USER_DHCPCD_NEW_DHCPCD is not set
++# CONFIG_USER_DHCPD_DHCPD is not set
++# CONFIG_USER_DHCP_ISC_SERVER_DHCPD is not set
++# CONFIG_USER_DHCP_ISC_CLIENT_DHCLIENT is not set
++# CONFIG_USER_DHCP_ISC_RELAY_DHCRELAY is not set
++# CONFIG_USER_DIALD_DIALD is not set
++# CONFIG_USER_DISCARD_DISCARD is not set
++# CONFIG_USER_DNSMASQ_DNSMASQ is not set
++# CONFIG_USER_ETHATTACH_ETHATTACH is not set
++# CONFIG_USER_EZIPUPDATE_EZIPUPDATE is not set
++# CONFIG_USER_FTP_FTP_FTP is not set
++# CONFIG_USER_FTPD_FTPD is not set
++# CONFIG_USER_FREESWAN is not set
++# CONFIG_USER_HTTPD_HTTPD is not set
++# CONFIG_USER_IFATTACH_IFATTACH is not set
++# CONFIG_USER_ROUTE_IFCONFIG is not set
++# CONFIG_USER_INETD_INETD is not set
++# CONFIG_USER_IPCHAINS_IPCHAINS is not set
++# CONFIG_USER_IPFWADM_IPFWADM is not set
++# CONFIG_USER_IPMASQADM_IPMASQADM is not set
++# CONFIG_USER_IPPORTFW_IPPORTFW is not set
++# CONFIG_USER_IPREDIR_IPREDIR is not set
++# CONFIG_USER_IPROUTE2 is not set
++# CONFIG_USER_IPTABLES_IPTABLES is not set
++# CONFIG_USER_KENDIN_CONFIG is not set
++# CONFIG_USER_KLAXON_KLAXON is not set
++# CONFIG_USER_L2TPD_L2TPD is not set
++# CONFIG_USER_LOATTACH_LOATTACH is not set
++# CONFIG_USER_SMTP_SMTPCLIENT is not set
++# CONFIG_USER_MAIL_MAIL_IP is not set
++# CONFIG_USER_MINI_HTTPD_MINI_HTTPD is not set
++# CONFIG_USER_MSNTP_MSNTP is not set
++# CONFIG_USER_ROUTE_NETSTAT is not set
++# CONFIG_USER_NETSTAT_NAT_NETSTAT_NAT is not set
++# CONFIG_USER_ROUTE_MIITOOL is not set
++# CONFIG_USER_NTPD_NTPD is not set
++# CONFIG_USER_NTPD_NTPDATE is not set
++# CONFIG_USER_NTPD_NTPQ is not set
++# CONFIG_USER_OPENSSL_APPS is not set
++# CONFIG_USER_PING_PING is not set
++# CONFIG_USER_PLUG_PLUG is not set
++# CONFIG_USER_PORTMAP_PORTMAP is not set
++# CONFIG_USER_PPPD_PPPD_PPPD is not set
++# CONFIG_USER_PPTPD_PPTPCTRL is not set
++# CONFIG_USER_PPTPD_PPTPD is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP is not set
++# CONFIG_USER_PPTP_CLIENT_PPTP_CALLMGR is not set
++# CONFIG_USER_RDATE_RDATE is not set
++# CONFIG_USER_ROUTE_ROUTE is not set
++# CONFIG_USER_ROUTED_ROUTED is not set
++# CONFIG_USER_RP_PPPOE_PPPOE is not set
++# CONFIG_USER_SETHDLC_SETHDLC is not set
++# CONFIG_USER_SLATTACH_SLATTACH is not set
++# CONFIG_USER_SNMPD_SNMPD is not set
++# CONFIG_USER_STUNNEL_STUNNEL is not set
++# CONFIG_USER_SQUID_SQUID is not set
++# CONFIG_USER_SSH_SSH is not set
++# CONFIG_USER_SSH_SSHD is not set
++# CONFIG_USER_SSH_SSHKEYGEN is not set
++# CONFIG_USER_STP_STP is not set
++# CONFIG_USER_TCPWRAP_TCPD is not set
++# CONFIG_USER_TCPBLAST_TCPBLAST is not set
++# CONFIG_USER_TCPDUMP_TCPDUMP is not set
++# CONFIG_USER_TELNETD_TELNETD is not set
++# CONFIG_USER_TELNET_TELNET is not set
++# CONFIG_USER_TFTP_TFTP is not set
++# CONFIG_USER_TFTPD_TFTPD is not set
++# CONFIG_USER_THTTPD_THTTPD is not set
++# CONFIG_USER_UCDSNMP_SNMPD is not set
++# CONFIG_USER_VCONFIG_VCONFIG is not set
++# CONFIG_USER_VPNLED_VPNLED is not set
++# CONFIG_USER_WGET is not set
++# CONFIG_USER_ZEBRA_ZEBRA_ZEBRA is not set
++# CONFIG_USER_NET_TOOLS_ARP is not set
++# CONFIG_USER_NET_TOOLS_HOSTNAME is not set
++# CONFIG_USER_NET_TOOLS_IFCONFIG is not set
++# CONFIG_USER_NET_TOOLS_NAMEIF is not set
++# CONFIG_USER_NET_TOOLS_NETSTAT is not set
++# CONFIG_USER_NET_TOOLS_PLIPCONFIG is not set
++# CONFIG_USER_NET_TOOLS_RARP is not set
++# CONFIG_USER_NET_TOOLS_ROUTE is not set
++# CONFIG_USER_NET_TOOLS_SLATTACH is not set
++# CONFIG_USER_NET_TOOLS_MII_TOOL is not set
++# CONFIG_USER_WIRELESS_TOOLS is not set
++# CONFIG_USER_HOSTAP_HOSTAP is not set
++# CONFIG_USER_WLAN_NG is not set
++
++#
++# Miscellaneous Applications
++#
++# CONFIG_USER_LANG_A60 is not set
++# CONFIG_USER_CAL_CAL is not set
++# CONFIG_USER_CHAT_CHAT is not set
++# CONFIG_USER_CKSUM_CKSUM is not set
++# CONFIG_USER_CLOCK_CLOCK is not set
++CONFIG_USER_CPU_CPU=y
++# CONFIG_USER_CAL_DATE is not set
++# CONFIG_USER_DHRYSTONE_DHRYSTONE is not set
++# CONFIG_USER_DE2TSCAL_DE2TSCAL is not set
++# CONFIG_USER_FROB_LED_FROB_LED is not set
++# CONFIG_USER_GDBSERVER_GDBREPLAY is not set
++# CONFIG_USER_GDBSERVER_GDBSERVER is not set
++# CONFIG_USER_HD_HD is not set
++# CONFIG_USER_LCD_LCD is not set
++# CONFIG_USER_LEDCON_LEDCON is not set
++# CONFIG_USER_LILO_LILO is not set
++# CONFIG_USER_LISSA_LISSA is not set
++# CONFIG_USER_USBCBI_USBCBI is not set
++# CONFIG_USER_USBISO_USBISO is not set
++# CONFIG_USER_MATH_TEST is not set
++# CONFIG_USER_MAWK_AWK is not set
++# CONFIG_USER_NULL_NULL is not set
++# CONFIG_USER_PALMBOT_PALMBOT is not set
++# CONFIG_USER_PCMCIA_CS is not set
++# CONFIG_USER_PERL_PERL is not set
++# CONFIG_USER_PYTHON_PYTHON is not set
++# CONFIG_USER_READPROFILE_READPROFILE is not set
++# CONFIG_USER_ROOTLOADER_ROOTLOADER is not set
++# CONFIG_USER_SETSERIAL_SETSERIAL is not set
++# CONFIG_USER_TRIPWIRE_SIGGEN is not set
++# CONFIG_USER_STRACE_STRACE is not set
++# CONFIG_USER_STTY_STTY is not set
++# CONFIG_USER_TCSH_TCSH is not set
++# CONFIG_USER_THREADDEMOS_THREADDEMOS is not set
++# CONFIG_USER_TIP_TIP is not set
++# CONFIG_USER_TRIPWIRE_TRIPWIRE is not set
++# CONFIG_USER_LRZSZ_LRZSZ is not set
++# CONFIG_USER_LIRC is not set
++# CONFIG_USER_LIRC_LIRCD is not set
++# CONFIG_USER_LIRC_IRRECORD is not set
++# CONFIG_USER_LIRC_LIRCMD is not set
++# CONFIG_USER_LIRC_IREXEC is not set
++# CONFIG_USER_LIRC_IRW is not set
++# CONFIG_USER_LIRC_MODE2 is not set
++CONFIG_USER_LEVEE_VI=y
++# CONFIG_USER_ELVISTINY_VI is not set
++# CONFIG_USER_MP3PLAY_MP3PLAY is not set
++# CONFIG_USER_OGGPLAY_OGG123 is not set
++# CONFIG_USER_OGGPLAY_EXAMPLE is not set
++# CONFIG_USER_MUSICBOX_MUSICBOX is not set
++# CONFIG_USER_PLAY_PLAY is not set
++# CONFIG_USER_PLAY_TONE is not set
++# CONFIG_USER_VPLAY_VPLAY is not set
++# CONFIG_USER_VPLAY_VREC is not set
++# CONFIG_USER_VPLAY_MIXER is not set
++# CONFIG_USER_PLAYRT_PLAYRT is not set
++# CONFIG_USER_W3CAM_VIDCAT is not set
++# CONFIG_USER_W3CAM_W3CAMD is not set
++# CONFIG_USER_FILEUTILS_CAT is not set
++# CONFIG_USER_FILEUTILS_CHGRP is not set
++# CONFIG_USER_FILEUTILS_CHMOD is not set
++# CONFIG_USER_FILEUTILS_CHOWN is not set
++# CONFIG_USER_FILEUTILS_CMP is not set
++# CONFIG_USER_FILEUTILS_CP is not set
++# CONFIG_USER_FILEUTILS_DD is not set
++# CONFIG_USER_FILEUTILS_GREP is not set
++# CONFIG_USER_FILEUTILS_L is not set
++# CONFIG_USER_FILEUTILS_LN is not set
++# CONFIG_USER_FILEUTILS_LS is not set
++# CONFIG_USER_FILEUTILS_MKDIR is not set
++# CONFIG_USER_FILEUTILS_MKFIFO is not set
++# CONFIG_USER_FILEUTILS_MKNOD is not set
++# CONFIG_USER_FILEUTILS_MORE is not set
++# CONFIG_USER_FILEUTILS_MV is not set
++# CONFIG_USER_FILEUTILS_RM is not set
++# CONFIG_USER_FILEUTILS_RMDIR is not set
++# CONFIG_USER_FILEUTILS_SYNC is not set
++# CONFIG_USER_FILEUTILS_TOUCH is not set
++# CONFIG_USER_SHUTILS_BASENAME is not set
++# CONFIG_USER_SHUTILS_DATE is not set
++# CONFIG_USER_SHUTILS_DIRNAME is not set
++# CONFIG_USER_SHUTILS_ECHO is not set
++# CONFIG_USER_SHUTILS_FALSE is not set
++# CONFIG_USER_SHUTILS_LOGNAME is not set
++# CONFIG_USER_SHUTILS_PRINTENV is not set
++# CONFIG_USER_SHUTILS_PWD is not set
++# CONFIG_USER_SHUTILS_TRUE is not set
++# CONFIG_USER_SHUTILS_UNAME is not set
++# CONFIG_USER_SHUTILS_WHICH is not set
++# CONFIG_USER_SHUTILS_WHOAMI is not set
++# CONFIG_USER_SHUTILS_YES is not set
++# CONFIG_USER_SYSUTILS_REBOOT is not set
++# CONFIG_USER_SYSUTILS_SHUTDOWN is not set
++# CONFIG_USER_SYSUTILS_DF is not set
++# CONFIG_USER_SYSUTILS_FREE is not set
++# CONFIG_USER_SYSUTILS_HOSTNAME is not set
++# CONFIG_USER_SYSUTILS_KILL is not set
++# CONFIG_USER_SYSUTILS_PS is not set
++# CONFIG_USER_PROCPS_FREE is not set
++# CONFIG_USER_PROCPS_KILL is not set
++# CONFIG_USER_PROCPS_PGREP is not set
++# CONFIG_USER_PROCPS_PKILL is not set
++# CONFIG_USER_PROCPS_PS is not set
++# CONFIG_USER_PROCPS_SNICE is not set
++# CONFIG_USER_PROCPS_SYSCTL is not set
++# CONFIG_USER_PROCPS_TLOAD is not set
++# CONFIG_USER_PROCPS_TOP is not set
++# CONFIG_USER_PROCPS_UPTIME is not set
++# CONFIG_USER_PROCPS_VMSTAT is not set
++# CONFIG_USER_PROCPS_W is not set
++# CONFIG_USER_PROCPS_WATCH is not set
++# CONFIG_USER_PCIUTILS_LSPCI is not set
++# CONFIG_USER_PCIUTILS_SETPCI is not set
++
++#
++# BusyBox
++#
++CONFIG_USER_BUSYBOX_BUSYBOX=y
++# CONFIG_USER_BUSYBOX_ADJTIMEX is not set
++# CONFIG_USER_BUSYBOX_AR is not set
++CONFIG_USER_BUSYBOX_BASENAME=y
++CONFIG_USER_BUSYBOX_CAT=y
++# CONFIG_USER_BUSYBOX_CHGRP is not set
++CONFIG_USER_BUSYBOX_CHMOD=y
++# CONFIG_USER_BUSYBOX_CHOWN is not set
++CONFIG_USER_BUSYBOX_CHROOT=y
++CONFIG_USER_BUSYBOX_CLEAR=y
++CONFIG_USER_BUSYBOX_CMP=y
++CONFIG_USER_BUSYBOX_CP=y
++CONFIG_USER_BUSYBOX_CUT=y
++CONFIG_USER_BUSYBOX_DATE=y
++# CONFIG_USER_BUSYBOX_DC is not set
++# CONFIG_USER_BUSYBOX_DD is not set
++CONFIG_USER_BUSYBOX_DF=y
++CONFIG_USER_BUSYBOX_DIRNAME=y
++CONFIG_USER_BUSYBOX_DMESG=y
++# CONFIG_USER_BUSYBOX_DUTMP is not set
++CONFIG_USER_BUSYBOX_DU=y
++CONFIG_USER_BUSYBOX_ECHO=y
++CONFIG_USER_BUSYBOX_ENV=y
++CONFIG_USER_BUSYBOX_EXPR=y
++CONFIG_USER_BUSYBOX_FIND=y
++CONFIG_USER_BUSYBOX_FIND_TYPE=y
++# CONFIG_USER_BUSYBOX_FIND_PERM is not set
++CONFIG_USER_BUSYBOX_FIND_MTIME=y
++CONFIG_USER_BUSYBOX_FREE=y
++CONFIG_USER_BUSYBOX_FREERAMDISK=y
++# CONFIG_USER_BUSYBOX_FSCK_MINIX is not set
++CONFIG_USER_BUSYBOX_GETOPT=y
++CONFIG_USER_BUSYBOX_GREP=y
++# CONFIG_USER_BUSYBOX_GREP_CONTEXT is not set
++# CONFIG_USER_BUSYBOX_GREP_EGREP_ALIAS is not set
++CONFIG_USER_BUSYBOX_GUNZIP=y
++# CONFIG_USER_BUSYBOX_GZIP is not set
++# CONFIG_USER_BUSYBOX_HALT is not set
++CONFIG_USER_BUSYBOX_HEAD=y
++CONFIG_USER_BUSYBOX_HOSTNAME=y
++# CONFIG_USER_BUSYBOX_ID is not set
++CONFIG_USER_BUSYBOX_IFCONFIG=y
++CONFIG_USER_BUSYBOX_IFCONFIG_STATUS=y
++# CONFIG_USER_BUSYBOX_IFCONFIG_SLIP is not set
++# CONFIG_USER_BUSYBOX_IFCONFIG_HW is not set
++# CONFIG_USER_BUSYBOX_IFCONFIG_MEMSTART_IOADDR_IRQ is not set
++# CONFIG_USER_BUSYBOX_INIT is not set
++CONFIG_USER_BUSYBOX_INSMOD=y
++CONFIG_USER_BUSYBOX_INSMOD_LOADINKMEM=y
++CONFIG_USER_BUSYBOX_INSMOD_LOAD_MAP=y
++CONFIG_USER_BUSYBOX_INSMOD_LOAD_MAP_FULL=y
++CONFIG_USER_BUSYBOX_KILL=y
++CONFIG_USER_BUSYBOX_KILLALL=y
++CONFIG_USER_BUSYBOX_KLOGD=y
++CONFIG_USER_BUSYBOX_LENGTH=y
++CONFIG_USER_BUSYBOX_LN=y
++CONFIG_USER_BUSYBOX_LOGGER=y
++CONFIG_USER_BUSYBOX_LOGNAME=y
++CONFIG_USER_BUSYBOX_LS=y
++# CONFIG_USER_BUSYBOX_LS_USERNAME is not set
++CONFIG_USER_BUSYBOX_LS_TIMESTAMPS=y
++CONFIG_USER_BUSYBOX_LS_FILETYPES=y
++CONFIG_USER_BUSYBOX_LS_SORTFILES=y
++CONFIG_USER_BUSYBOX_LS_RECURSIVE=y
++# CONFIG_USER_BUSYBOX_LS_FOLLOWLINKS is not set
++CONFIG_USER_BUSYBOX_LSMOD=y
++# CONFIG_USER_BUSYBOX_MAKEDEVS is not set
++CONFIG_USER_BUSYBOX_MD5SUM=y
++CONFIG_USER_BUSYBOX_MKDIR=y
++# CONFIG_USER_BUSYBOX_MKFS_MINIX is not set
++# CONFIG_USER_BUSYBOX_MKNOD is not set
++# CONFIG_USER_BUSYBOX_MKTEMP is not set
++CONFIG_USER_BUSYBOX_MODPROBE=y
++CONFIG_USER_BUSYBOX_MORE=y
++CONFIG_USER_BUSYBOX_MOUNT=y
++CONFIG_USER_BUSYBOX_MOUNT_LOOP=y
++# CONFIG_USER_BUSYBOX_MTAB_SUPPORT is not set
++CONFIG_USER_BUSYBOX_NFSMOUNT=y
++CONFIG_USER_BUSYBOX_MV=y
++CONFIG_USER_BUSYBOX_NC=y
++CONFIG_USER_BUSYBOX_NSLOOKUP=y
++CONFIG_USER_BUSYBOX_PIDOF=y
++CONFIG_USER_BUSYBOX_PING=y
++CONFIG_USER_BUSYBOX_FANCY_PING=y
++CONFIG_USER_BUSYBOX_PIVOT_ROOT=y
++# CONFIG_USER_BUSYBOX_POWEROFF is not set
++CONFIG_USER_BUSYBOX_PRINTF=y
++CONFIG_USER_BUSYBOX_PS=y
++CONFIG_USER_BUSYBOX_PWD=y
++CONFIG_USER_BUSYBOX_RDATE=y
++CONFIG_USER_BUSYBOX_READLINK=y
++CONFIG_USER_BUSYBOX_REBOOT=y
++# CONFIG_USER_BUSYBOX_RENICE is not set
++# CONFIG_USER_BUSYBOX_RESET is not set
++CONFIG_USER_BUSYBOX_RM=y
++CONFIG_USER_BUSYBOX_RMDIR=y
++CONFIG_USER_BUSYBOX_RMMOD=y
++CONFIG_USER_BUSYBOX_ROUTE=y
++# CONFIG_USER_BUSYBOX_RPM2CPIO is not set
++CONFIG_USER_BUSYBOX_SED=y
++CONFIG_USER_BUSYBOX_SHELL=y
++# CONFIG_USER_BUSYBOX_ASH is not set
++# CONFIG_USER_BUSYBOX_SH_IS_ASH is not set
++# CONFIG_USER_BUSYBOX_HUSH is not set
++# CONFIG_USER_BUSYBOX_SH_IS_HUSH is not set
++# CONFIG_USER_BUSYBOX_LASH is not set
++# CONFIG_USER_BUSYBOX_SH_IS_LASH is not set
++CONFIG_USER_BUSYBOX_MSH=y
++CONFIG_USER_BUSYBOX_SH_IS_MSH=y
++CONFIG_USER_BUSYBOX_COMMAND_EDITING=y
++CONFIG_USER_BUSYBOX_TAB_COMPLETION=y
++# CONFIG_USER_BUSYBOX_USERNAME_COMPLETION is not set
++CONFIG_USER_BUSYBOX_SH_STANDALONE_SHELL=y
++# CONFIG_USER_BUSYBOX_SH_APPLETS_ALWAYS_WIN is not set
++CONFIG_USER_BUSYBOX_SH_FANCY_PROMPT=y
++CONFIG_USER_BUSYBOX_SLEEP=y
++CONFIG_USER_BUSYBOX_SORT=y
++CONFIG_USER_BUSYBOX_SORT_REVERSE=y
++CONFIG_USER_BUSYBOX_SORT_UNIQUE=y
++# CONFIG_USER_BUSYBOX_STTY is not set
++CONFIG_USER_BUSYBOX_SYNC=y
++CONFIG_USER_BUSYBOX_SYSLOGD=y
++CONFIG_USER_BUSYBOX_REMOTE_LOG=y
++CONFIG_USER_BUSYBOX_IPC_SYSLOG=y
++CONFIG_USER_BUSYBOX_TAIL=y
++# CONFIG_USER_BUSYBOX_FANCY_TAIL is not set
++CONFIG_USER_BUSYBOX_TAR=y
++CONFIG_USER_BUSYBOX_TAR_CREATE=y
++# CONFIG_USER_BUSYBOX_TAR_EXCLUDE is not set
++CONFIG_USER_BUSYBOX_TEE=y
++CONFIG_USER_BUSYBOX_TELNET=y
++CONFIG_USER_BUSYBOX_TELNET_TTYPE=y
++CONFIG_USER_BUSYBOX_TEST=y
++CONFIG_USER_BUSYBOX_TFTP=y
++CONFIG_USER_BUSYBOX_TFTP_PUT=y
++CONFIG_USER_BUSYBOX_TFTP_GET=y
++CONFIG_USER_BUSYBOX_TOUCH=y
++CONFIG_USER_BUSYBOX_TR=y
++CONFIG_USER_BUSYBOX_TRACEROUTE=y
++CONFIG_USER_BUSYBOX_TRUE_FALSE=y
++# CONFIG_USER_BUSYBOX_TTY is not set
++CONFIG_USER_BUSYBOX_UMOUNT=y
++CONFIG_USER_BUSYBOX_MOUNT_FORCE=y
++CONFIG_USER_BUSYBOX_UNAME=y
++CONFIG_USER_BUSYBOX_UNIQ=y
++# CONFIG_USER_BUSYBOX_UNIX2DOS is not set
++CONFIG_USER_BUSYBOX_UPTIME=y
++CONFIG_USER_BUSYBOX_USLEEP=y
++# CONFIG_USER_BUSYBOX_UUDECODE is not set
++# CONFIG_USER_BUSYBOX_UUENCODE is not set
++# CONFIG_USER_BUSYBOX_VI is not set
++# CONFIG_USER_BUSYBOX_WATCHDOG is not set
++# CONFIG_USER_BUSYBOX_WC is not set
++CONFIG_USER_BUSYBOX_WGET=y
++# CONFIG_USER_BUSYBOX_WGET_STATUSBAR is not set
++# CONFIG_USER_BUSYBOX_WGET_AUTHENTICATION is not set
++CONFIG_USER_BUSYBOX_WHICH=y
++CONFIG_USER_BUSYBOX_WHOAMI=y
++CONFIG_USER_BUSYBOX_XARGS=y
++CONFIG_USER_BUSYBOX_YES=y
++# CONFIG_USER_BUSYBOX_VERBOSE_USAGE is not set
++CONFIG_USER_BUSYBOX_AUTOWIDTH=y
++CONFIG_USER_BUSYBOX_NEW_MODULE_INTERFACE=y
++CONFIG_USER_BUSYBOX_OLD_MODULE_INTERFACE=y
++# CONFIG_USER_BUSYBOX_INSMOD_VERSION_CHECKING is not set
++CONFIG_USER_BUSYBOX_HUMAN_READABLE=y
++
++#
++# Tinylogin
++#
++CONFIG_USER_TINYLOGIN_TINYLOGIN=y
++# CONFIG_USER_TINYLOGIN_ADDUSER is not set
++# CONFIG_USER_TINYLOGIN_ADDGROUP is not set
++# CONFIG_USER_TINYLOGIN_DELUSER is not set
++# CONFIG_USER_TINYLOGIN_DELGROUP is not set
++CONFIG_USER_TINYLOGIN_LOGIN=y
++# CONFIG_USER_TINYLOGIN_SECURETTY is not set
++# CONFIG_USER_TINYLOGIN_SU is not set
++# CONFIG_USER_TINYLOGIN_SULOGIN is not set
++# CONFIG_USER_TINYLOGIN_PASSWD is not set
++# CONFIG_USER_TINYLOGIN_GETTY is not set
++# CONFIG_USER_TINYLOGIN_SHADOWPASSWDS is not set
++# CONFIG_USER_TINYLOGIN_MD5_PASSWORDS is not set
++# CONFIG_USER_TINYLOGIN_SHA1_PASSWORDS is not set
++# CONFIG_USER_TINYLOGIN_TRIVIAL_HELP is not set
++
++#
++# MicroWindows
++#
++# CONFIG_USER_MICROWIN is not set
++
++#
++# Games
++#
++# CONFIG_USER_GAMES_ADVENT4 is not set
++# CONFIG_USER_GAMES_DUNGEON is not set
++# CONFIG_USER_GAMES_RUBIK is not set
++
++#
++# Marvell AP32 Configuration
++#
++CONFIG_USER_MRVL_RGCFG=y
++# CONFIG_USER_MRVL_AP_DAEMON is not set
++CONFIG_USER_MRVL_AP_MFG_DAEMON=y
++
++#
++# Miscellaneous Configuration
++#
++# CONFIG_USER_RAMIMAGE_NONE is not set
++# CONFIG_USER_RAMIMAGE_RAMFS64 is not set
++CONFIG_USER_RAMIMAGE_RAMFS128=y
++# CONFIG_USER_RAMIMAGE_RAMFS256 is not set
++# CONFIG_USER_RAMIMAGE_RAMFS512 is not set
++# CONFIG_USER_RAMIMAGE_RAMFS1024 is not set
++# CONFIG_USER_RAMIMAGE_RAMFS2048 is not set
++# CONFIG_USER_CGI_GENERIC is not set
++# CONFIG_USER_CGIHTML is not set
++# CONFIG_USER_DEMO_BUTTON is not set
++# CONFIG_USER_DEMO_LATCH is not set
++# CONFIG_USER_DEMO_MORSE is not set
++# CONFIG_USER_DEMO_R2100 is not set
++
++#
++# Debug Builds
++#
++# CONFIG_LIB_DEBUG is not set
++# CONFIG_USER_DEBUG is not set
++# CONFIG_USER_TIMEPEG_TPT is not set
++# CONFIG_LIB_LIBCCMALLOC is not set
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/dhcpd.conf uClinux-dist/vendors/Marvell/Libertas/dhcpd.conf
+--- uClinux-dist.orig/vendors/Marvell/Libertas/dhcpd.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/dhcpd.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,16 @@
++subnet 192.168.0.0 netmask 255.255.255.0 {
++	range 192.168.0.2 192.168.0.9;
++	default-lease-time 86400;
++	max-lease-time 86400;
++	option routers 192.168.0.1;
++	option ip-forwarding off;
++	option broadcast-address 192.168.0.255;
++	option subnet-mask 255.255.255.0;
++	option domain-name-servers 192.168.0.1;
++}
++
++# subnet 255.255.255.0
++# router 192.168.0.1
++# dns 192.168.0.1
++# wins 192.168.0.1
++
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/hostapd.accept uClinux-dist/vendors/Marvell/Libertas/hostapd.accept
+--- uClinux-dist.orig/vendors/Marvell/Libertas/hostapd.accept	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/hostapd.accept	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,2 @@
++# List of MAC addresses that are allowed to authenticate (IEEE 802.11)
++# with the AP.
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/hostapd.conf uClinux-dist/vendors/Marvell/Libertas/hostapd.conf
+--- uClinux-dist.orig/vendors/Marvell/Libertas/hostapd.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/hostapd.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,276 @@
++##### hostapd configuration file ##############################################
++# Empty lines and lines starting with # are ignored
++
++# Manufacturer specific configuration
++manuf_file=/dev/mtd3
++
++# AP netdevice name (without 'ap' prefix, i.e., wlan0 uses wlan0ap for
++# management frames)
++interface=wlan0
++
++# hostapd event logger configuration
++#
++# Two output method: syslog and stdout (only usable if not forking to
++# background).
++#
++# Module bitfield (ORed bitfield of modules that will be logged; -1 = all
++# modules):
++# bit 0 (1) = IEEE 802.11
++# bit 1 (2) = IEEE 802.1X
++# bit 2 (4) = RADIUS
++#
++# Levels (minimum value for logged events):
++#  0 = verbose debugging
++#  1 = debugging
++#  2 = informational messages
++#  3 = notification
++#  4 = warning
++#
++logger_syslog=-1
++logger_syslog_level=2
++logger_stdout=-1
++logger_stdout_level=2
++
++# Debugging: 0 = no, 1 = minimal, 2 = verbose, 3 = msg dumps
++debug=0
++
++# Dump file for state information (on SIGUSR1)
++dump_file=/tmp/hostapd.dump
++
++# Daemonize hostapd process (i.e., fork to background)
++daemonize=1
++
++
++##### IEEE 802.11 related configuration #######################################
++
++# AP Operational Mode
++# 0 = 802.11b mode only
++# 1 = 802.11g mode only
++# 2 = 802.11b/g mixed mode
++ap_mode=2
++
++# G Protection Mode
++# 0 = disable
++# 1 = enable
++g_protect=1
++
++# AP Mode of Operation for Linux Wireless Extension
++# 1 = Single cell network (station)
++# 2 = Multi cell network, roaming, ... (IBSS)
++# 3 = Synchronisation master or Access Point (BSS)
++# 4 = Wireless Repeater (forwarder)
++# 5 = Secondary master/repeater (backup)
++# 6 = Passive monitor (listen only)
++iw_mode=3
++
++# AP Operational Rate Sets configuration
++# Value in kbps
++oper_rate=1000,2000,5500,11000,6000,9000,12000,18000,24000,36000,48000,54000
++
++# AP Basic Rate Sets configuration
++# Value in kbps
++basic_rate=1000,2000,5500,11000
++
++# Fixed AP Operational Rate Sets configuration
++# 0 = Not fixed
++# 1 = Fixed
++fixed_tx_data_rate=0
++
++#Fixed B Rate
++#Value in kbps
++fixed_tx_b_rate=11000
++
++#Fixed G Rate
++#Value in kbps
++fixed_tx_g_rate=54000
++
++# SSID to be used in IEEE 802.11 management frames
++ssid=AP32uClinux
++
++# Beacon Interval
++beacon_interval=100
++
++# DTIM Period
++dtim_period=3
++
++# RTS Threshold
++rts_threshold=2347
++
++# Fragmentation Threshold
++fragment_threshold=2346
++
++# Short Retry Limit
++short_retry_limit=7
++
++# Long Retry Limit
++long_retry_limit=4
++
++# Channel for AP
++# Valid ranges from 1 to 14 depending on the region being used
++channel=6
++
++# Current Transmit Power Level
++# Valid ranges from 1 to 8 depending on the region being used
++current_tx_power_level=1
++
++# Use of Short Preamble
++# 0 = No
++# 1 = Yes
++short_preamble=1
++
++
++##### Security related configuration #################
++
++# AP Hidden SSID configuration configuration
++hide_ssid=0
++
++# Station MAC address -based authentication
++# 0 = accept unless in deny list
++# 1 = deny unless in accept list
++# 2 = use external RADIUS server (accept/deny lists are searched first)
++macaddr_acl=0
++
++# Accept/deny lists are read from separate files (containing list of
++# MAC addresses, one per line). Use absolute path name to make sure that the
++# files can be read on SIGHUP configuration reloads.
++accept_mac_file=/etc/hostapd.accept
++deny_mac_file=/etc/hostapd.deny
++
++# Associate as a station to another AP while still acting as an AP on the same
++# channel.
++#assoc_ap_addr=00:12:34:56:78:9a
++
++# IEEE 802.11 specifies two authentication algorithms. hostapd can be
++# configured to allow both of these or only one. Open system authentication
++# should be used with IEEE 802.1X.
++# Bit fields of allowed authentication algorithms:
++# bit 0 = Open System Authentication
++# bit 1 = Shared Key Authentication (requires WEP)
++auth_algs=3
++
++# WEP Key lengths for default/broadcast and individual/unicast keys:
++# 5 = 40-bit WEP (also known as 64-bit WEP with 40 secret bits)
++# 13 = 104-bit WEP (also known as 128-bit WEP with 104 secret bits)
++wep_key_len=5
++
++# WEP Key Type
++# Value can be any of the two strings defined as follows,
++# ascii = ASCII string is used
++# hex   = Hex-decimal string is used
++wep_key_type=hex
++
++# Default WEP Key Index
++# Value ranges from 1 to 4
++wep_default_key=1
++
++# Default WEP Key Configuration
++wep_default_key1=9876543210
++wep_default_key2=1112131415
++wep_default_key3=2122232425
++wep_default_key4=9192939495
++
++# WEP Encryption Mode
++# 0 = Disabled
++# 1 = Enabled
++privacy_invoked=0
++
++# Weak WEP Encryption Mode
++# 0 = Accept both WEP encryption and unencryption frames
++# 1 = Accept only WEP encryption frames
++exclude_unencrypted=0
++
++
++##### WPA related configuration ##################
++
++# WPA mode (if WPA mode is enabled, WEP setting will not take effect)
++# 0 = disable
++# 1 = WPA-PSK
++wpa_mode=0
++
++# WPA Data Encryption
++# 2 = TKIP
++# 4 = CCMP, not work right now, do not use it, and it is not needed for WPA (RSN or WPA2 need it)
++wpa_encry=2
++
++# WPA PassPhrase (8..63)
++wpa_passphrase=12345678
++
++# WPA Group Rekey Interval (in second)
++wpa_group_rekey_time=86400
++
++
++##### Misc configuration #################
++
++# GPIO (0..15) for WLAN LED, if you use the same one, set tx and rx to the same GPIO
++wlan_tx_gpio=0
++wlan_rx_gpio=1
++
++
++##### IEEE 802.1X (and IEEE 802.1aa/D4) related configuration #################
++
++# Require IEEE 802.1X authorization
++#ieee8021x=1
++
++# Use internal minimal EAP Authentication Server for testing IEEE 802.1X.
++# This should only be used for testing since it authorizes all users that
++# suppot IEEE 802.1X without any keys or certificates.
++minimal_eap=0
++
++# Optional displayable message sent with EAP Request-Identity
++eap_message=hello
++
++# WEP rekeying (disabled if key lengths are not set or are set to 0)
++# Rekeying period in seconds. 0 = do not rekey (i.e., set keys only once)
++#wep_rekey_period=300
++
++# EAPOL-Key index workaround (set bit7) for WinXP Supplicant (needed only if
++# only broadcast keys are used)
++eapol_key_index_workaround=0
++
++
++##### IEEE 802.11f - Inter-Access Point Protocol (IAPP) #######################
++
++# Interface to be used for IAPP broadcast packets
++#iapp_interface=eth0
++
++
++##### RADIUS configuration ####################################################
++# for IEEE 802.1X with external Authentication Server, IEEE 802.11
++# authentication with external ACL for MAC addresses, and accounting
++
++# The own IP address of the access point (used as NAS-IP-Address)
++own_ip_addr=127.0.0.1
++
++# RADIUS authentication server
++#auth_server_addr=127.0.0.1
++#auth_server_port=1812
++#auth_server_shared_secret=secret
++
++# RADIUS accounting server
++#acct_server_addr=127.0.0.1
++#acct_server_port=1813
++#acct_server_shared_secret=secret
++
++# Secondary RADIUS servers; to be used if primary one does not reply to
++# RADIUS packets. These are optional and there can be more than one secondary
++# server listed.
++#auth_server_addr=127.0.0.2
++#auth_server_port=1812
++#auth_server_shared_secret=secret2
++#
++#acct_server_addr=127.0.0.2
++#acct_server_port=1813
++#acct_server_shared_secret=secret2
++
++# Retry interval for trying to return to the primary RADIUS server (in
++# seconds). RADIUS client code will automatically try to use the next server
++# when the current server is not replying to requests. If this interval is set,
++# primary server will be retried after configured amount of time even if the
++# currently used secondary server is still working.
++#radius_retry_primary_interval=600
++
++
++# Interim accounting update interval
++# If this is set (larger than 0) and acct_server is configured, hostapd will
++# send interim accounting updates every N seconds.
++#radius_acct_interim_interval=600
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/hostapd.deny uClinux-dist/vendors/Marvell/Libertas/hostapd.deny
+--- uClinux-dist.orig/vendors/Marvell/Libertas/hostapd.deny	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/hostapd.deny	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,2 @@
++# List of MAC addresses that are not allowed to authenticate (IEEE 802.11)
++# with the AP.
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/inetd.conf uClinux-dist/vendors/Marvell/Libertas/inetd.conf
+--- uClinux-dist.orig/vendors/Marvell/Libertas/inetd.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/inetd.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,2 @@
++telnet  stream tcp nowait root /bin/telnetd
++mvmfg   dgram  udp wait   root /bin/mvmfgd
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/inittab uClinux-dist/vendors/Marvell/Libertas/inittab
+--- uClinux-dist.orig/vendors/Marvell/Libertas/inittab	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/inittab	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,3 @@
++inet:unknown:/bin/inetd
++# boa:unknown:/bin/boa
++
+Binary files uClinux-dist.orig/vendors/Marvell/Libertas/jffs2.img and uClinux-dist/vendors/Marvell/Libertas/jffs2.img differ
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/Makefile uClinux-dist/vendors/Marvell/Libertas/Makefile
+--- uClinux-dist.orig/vendors/Marvell/Libertas/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/Makefile	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,120 @@
++#
++#	Makefile -- Build instructions for Marvell/Libertas
++#
++
++ROMFSIMG = $(IMAGEDIR)/romfs.img
++IMAGE    = $(IMAGEDIR)/image.bin
++ELFIMAGE = $(IMAGEDIR)/image.elf
++
++ROMFS_DIRS = bin dev etc home lib/modules mnt proc usr var etc/config etc/dhcpc
++
++ifdef CONFIG_128MHZ_CLOCK
++CLOCK=128MHZ
++endif
++
++ifdef CONFIG_160MHZ_CLOCK
++CLOCK=160MHZ
++endif
++
++ifdef CONFIG_8M_MEM
++MEMSIZE=8M
++endif
++
++ifdef CONFIG_16M_MEM
++MEMSIZE=16M
++endif
++
++DEVICES = \
++	tty,c,5,0      console,c,5,1      cua0,c,5,64      cua1,c,5,65  \
++	\
++	mem,c,1,1      kmem,c,1,2         null,c,1,3       ram0,b,1,0 \
++	ram1,b,1,1 \
++	\
++	ptyp0,c,2,0    ptyp1,c,2,1        ptyp2,c,2,2      ptyp3,c,2,3 \
++	ptyp4,c,2,4    ptyp5,c,2,5        ptyp6,c,2,6      ptyp7,c,2,7 \
++	ptyp8,c,2,8    ptyp9,c,2,9        ptypa,c,2,10     ptypb,c,2,11 \
++	ptypc,c,2,12   ptypd,c,2,13       ptype,c,2,14     ptypf,c,2,15 \
++	\
++	rom0,b,31,0    rom1,b,31,1        rom2,b,31,2      rom3,b,31,3 \
++	rom4,b,31,4    rom5,b,31,5        rom6,b,31,6      rom7,b,31,7 \
++	rom8,b,31,8    rom9,b,31,9 \
++	\
++	mtd0,c,90,0    mtd1,c,90,2        mtd2,c,90,4      mtd3,c,90,6 \
++	mtd4,c,90,8    mtd5,c,90,10 \
++	\
++	mtdr0,c,90,1   mtdr1,c,90,3       mtdr2,c,90,5     mtdr3,c,90,7 \
++	mtdr4,c,90,9   mtdr5,c,90,11 \
++	\
++	mtdblock0,b,31,0         mtdblock1,b,31,1        mtdblock2,b,31,2 \
++	mtdblock3,b,31,3         mtdblock4,b,31,4        mtdblock5,b,31,5 \
++	\
++	tty0,c,4,0     tty1,c,4,1         tty2,c,4,2       tty3,c,4,3 \
++	ttyS0,c,4,64   ttyS1,c,4,65 \
++	\
++	ttyp0,c,3,0    ttyp1,c,3,1        ttyp2,c,3,2      ttyp3,c,3,3 \
++	ttyp4,c,3,4    ttyp5,c,3,5        ttyp6,c,3,6      ttyp7,c,3,7 \
++	ttyp8,c,3,8    ttyp9,c,3,9        ttypa,c,3,10     ttypb,c,3,11 \
++	ttypc,c,3,12   ttypd,c,3,13       ttype,c,3,14     ttypf,c,3,15 \
++	\
++	zero,c,1,5     random,c,1,8       urandom,c,1,9
++
++
++clean:
++
++romfs:
++	[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)
++	for i in $(ROMFS_DIRS); do \
++		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
++	done
++	for i in $(DEVICES); do \
++		touch $(ROMFSDIR)/dev/@$$i; \
++	done
++	$(ROMFSINST) -s /var/tmp /tmp
++	$(ROMFSINST) -s /bin /sbin
++	$(ROMFSINST) /1
++	$(ROMFSINST) /etc/rc
++	$(ROMFSINST) /etc/rc.net
++	$(ROMFSINST) /etc/inittab
++	$(ROMFSINST) /etc/services
++	case "$(LINUXDIR)" in \
++	*2.4.*) ;; \
++	*) echo "ttyS0:linux:/bin/sh" >> $(ROMFSDIR)/etc/inittab ;; \
++	esac
++	$(ROMFSINST) /etc/inetd.conf
++	$(ROMFSINST) /etc/config/dhcpd.conf
++	$(ROMFSINST) /etc/config/dhcpd.leases
++	$(ROMFSINST) /etc/motd
++	$(ROMFSINST) /etc/resolv.conf
++	$(ROMFSINST) /etc/resolv.dnsmasq
++	$(ROMFSINST) /etc/config/unimac.conf
++	$(ROMFSINST) /etc/hostapd.conf
++	$(ROMFSINST) /etc/hostapd.accept
++	$(ROMFSINST) /etc/hostapd.deny
++	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
++	./mkfs.jffs2 -r $(ROOTDIR)/romfs/etc -o jffs2.img
++	$(ROMFSINST) /etc/jffs2.img
++	$(ROMFSINST) /etc/updateapd
++	rm -rf mvwlan.o
++	cp mvwlan-$(MEMSIZE)-$(CLOCK).o mvwlan.o
++	$(ROMFSINST) /lib/modules/mvwlan.o
++	$(ROMFSINST) /bin/mvmfgd
++	$(ROMFSINST) /bin/mvapd
++
++image:
++	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
++	genromfs -v -V "ROMdisk" -f $(ROMFSIMG) -d $(ROMFSDIR)
++	$(CROSS_COMPILE)objcopy -O binary --remove-section=.romvec \
++			--remove-section=.text --remove-section=.ramvec \
++			--remove-section=.init \
++			--remove-section=.bss --remove-section=.eram \
++			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.data
++	$(CROSS_COMPILE)objcopy -O binary --remove-section=.ramvec \
++			--remove-section=.bss --remove-section=.data \
++			--remove-section=.eram \
++			--set-section-flags=.romvec=CONTENTS,ALLOC,LOAD,READONLY,CODE \
++			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.text
++	cat $(IMAGEDIR)/linux.text $(IMAGEDIR)/linux.data $(ROMFSIMG) > $(IMAGE)
++	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROOTDIR)/$(LINUXDIR)/arch/armnommu/boot/zImage /tftpboot
++	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROMFSIMG) /tftpboot
++#	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(IMAGE) /tftpboot
++
+Binary files uClinux-dist.orig/vendors/Marvell/Libertas/mkfs.jffs2 and uClinux-dist/vendors/Marvell/Libertas/mkfs.jffs2 differ
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/motd uClinux-dist/vendors/Marvell/Libertas/motd
+--- uClinux-dist.orig/vendors/Marvell/Libertas/motd	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/motd	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,13 @@
++Welcome to
++          ____ _  _
++         /  __| ||_|                 
++    _   _| |  | | _ ____  _   _  _  _ 
++   | | | | |  | || |  _ \| | | |\ \/ /
++   | |_| | |__| || | | | | |_| |/    \
++   |  ___\____|_||_|_| |_|\____|\_/\_/
++   | |
++   |_| On Marvell's Libertas AP board !!!
++
++For further information on the uClinux project check:
++http://www.uclinux.org/
++
+Binary files uClinux-dist.orig/vendors/Marvell/Libertas/mvapd and uClinux-dist/vendors/Marvell/Libertas/mvapd differ
+Binary files uClinux-dist.orig/vendors/Marvell/Libertas/mvmfgd and uClinux-dist/vendors/Marvell/Libertas/mvmfgd differ
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/passwd uClinux-dist/vendors/Marvell/Libertas/passwd
+--- uClinux-dist.orig/vendors/Marvell/Libertas/passwd	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/passwd	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++passwd abvQyXa0CDjIA
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/rc uClinux-dist/vendors/Marvell/Libertas/rc
+--- uClinux-dist.orig/vendors/Marvell/Libertas/rc	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/rc	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,28 @@
++insmod /lib/modules/unimac.o
++insmod /lib/modules/mvwlan.o
++
++hostname Libertas
++/bin/expand /etc/ramfs.img /dev/ram0
++mount -t proc proc /proc
++mount -t ext2 /dev/ram0 /var
++mkdir /var/tmp
++mkdir /var/log
++mkdir /var/run
++mkdir /var/lock
++
++#Making the /etc directory RW
++
++/bin/expand /etc/ramfs.img /dev/ram1
++cp -r /etc /var
++mount -t ext2 /dev/ram1 /etc
++cp -r /var/etc /
++
++/bin/rgcfg -i
++
++/bin/mvapd /etc/hostapd.conf &
++/bin/sleep 1
++
++#uncomment next line to make your Libertas board act as a home-gateway.
++
++source /etc/rc.net
++cat /etc/motd
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/rc.net uClinux-dist/vendors/Marvell/Libertas/rc.net
+--- uClinux-dist.orig/vendors/Marvell/Libertas/rc.net	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/rc.net	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,34 @@
++# Bridge LAN & WLAN
++/bin/ifconfig LAN up
++/bin/ifconfig wlan0 up
++/bin/brctl addbr br0
++/bin/brctl addif br0 LAN
++/bin/brctl addif br0 wlan0
++/bin/brctl setfd br0 1
++/bin/ifconfig br0 192.168.0.1 up
++
++# DHCP Server configuration
++#/bin/dhcpd br0 &
++
++# DHCP Client configuration
++#rm -rf /etc/dhcpc/*
++#chmod 777 /etc/resolv.conf
++#chmod 777 /etc/resolv.dnsmasq
++
++/bin/ifconfig lo 127.0.0.1
++/bin/route add 127.0.0.0 lo
++
++#/bin/ifconfig WAN up
++#/bin/dhcpcd -rDH -l 86400 WAN &
++
++# DNS settings
++#/bin/dnsmasq -r /etc/resolv.dnsmasq &
++
++# FW + NAT settings
++#/bin/iptables -t nat -F
++#/bin/iptables -t nat -A POSTROUTING -o WAN -j MASQUERADE
++#cp -f 1 /proc/sys/net/ipv4/ip_dynaddr
++#cp -f 1 /proc/sys/net/ipv4/ip_forward
++
++# HTTP server
++#/bin/boa &
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/resolv.conf uClinux-dist/vendors/Marvell/Libertas/resolv.conf
+--- uClinux-dist.orig/vendors/Marvell/Libertas/resolv.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/resolv.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1 @@
++nameserver 127.0.0.1
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/services uClinux-dist/vendors/Marvell/Libertas/services
+--- uClinux-dist.orig/vendors/Marvell/Libertas/services	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/services	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,447 @@
++rtmp	1/ddp
++tcpmux	1/tcp
++tcpmux	1/udp
++nbp	2/ddp
++echo	4/ddp
++rje	5/tcp
++rje	5/udp
++zip	6/ddp
++echo	7/tcp
++echo	7/udp
++discard	9/tcp	sink null
++discard	9/udp	sink null
++systat	11/tcp	users
++systat	11/udp	users
++daytime	13/tcp
++daytime	13/udp
++netstat	15/tcp
++qotd	17/tcp	quote
++qotd	17/udp	quote
++msp	18/tcp
++msp	18/udp
++chargen	19/tcp	ttytst source
++chargen	19/udp	ttytst source
++ftp-data	20/tcp
++ftp-data	20/udp
++fsp	21/udp	fspd
++ftp	21/tcp
++ftp	21/udp
++ssh	22/tcp
++ssh	22/udp
++telnet	23/tcp
++telnet	23/udp
++smtp	25/tcp	mail
++smtp	25/udp	mail
++time	37/tcp	timserver
++time	37/udp	timserver
++rlp	39/tcp	resource
++rlp	39/udp	resource
++nameserver	42/tcp	name
++nameserver	42/udp	name
++nicname	43/tcp	whois
++nicname	43/udp	whois
++tacacs	49/tcp
++tacacs	49/udp
++re-mail-ck	50/tcp
++re-mail-ck	50/udp
++domain	53/tcp	nameserver
++domain	53/udp	nameserver
++whois++	63/tcp
++whois++	63/udp
++bootps	67/tcp
++bootps	67/udp
++bootpc	68/tcp
++bootpc	68/udp
++tftp	69/tcp
++tftp	69/udp
++gopher	70/tcp
++gopher	70/udp
++netrjs-1	71/tcp
++netrjs-1	71/udp
++netrjs-2	72/tcp
++netrjs-2	72/udp
++netrjs-3	73/tcp
++netrjs-3	73/udp
++netrjs-4	74/tcp
++netrjs-4	74/udp
++finger	79/tcp
++finger	79/udp
++http	80/tcp	www www-http
++http	80/udp	www www-http
++kerberos	88/tcp	kerberos5 krb5
++kerberos	88/udp	kerberos5 krb5
++supdup	95/tcp
++supdup	95/udp
++linuxconf	98/tcp
++hostname	101/tcp	hostnames
++hostname	101/udp	hostnames
++iso-tsap	102/tcp	tsap
++csnet-ns	105/tcp	cso
++csnet-ns	105/udp	cso
++poppassd	106/tcp
++poppassd	106/udp
++rtelnet	107/tcp
++rtelnet	107/udp
++pop2	109/tcp	pop-2 postoffice
++pop2	109/udp	pop-2
++pop3	110/tcp	pop-3
++pop3	110/udp	pop-3
++sunrpc	111/tcp	portmapper
++sunrpc	111/udp	portmapper
++auth	113/tcp	authentication tap ident
++auth	113/udp	authentication tap ident
++sftp	115/tcp
++sftp	115/udp
++uucp-path	117/tcp
++uucp-path	117/udp
++nntp	119/tcp	readnews untp
++nntp	119/udp	readnews untp
++ntp	123/tcp
++ntp	123/udp
++netbios-ns	137/tcp
++netbios-ns	137/udp
++netbios-dgm	138/tcp
++netbios-dgm	138/udp
++netbios-ssn	139/tcp
++netbios-ssn	139/udp
++imap	143/tcp	imap2
++imap	143/udp	imap2
++snmp	161/tcp
++snmp	161/udp
++snmptrap	162/udp	snmp-trap
++cmip-man	163/tcp
++cmip-man	163/udp
++cmip-agent	164/tcp
++smip-agent	164/udp
++mailq	174/tcp
++mailq	174/udp
++xdmcp	177/tcp
++xdmcp	177/udp
++nextstep	178/tcp	NeXTStep NextStep
++nextstep	178/udp	NeXTStep NextStep
++bgp	179/tcp
++bgp	179/udp
++prospero	191/tcp
++prospero	191/udp
++irc	194/tcp
++irc	194/udp
++smux	199/tcp
++smux	199/udp
++at-rtmp	201/tcp
++at-rtmp	201/udp
++at-nbp	202/tcp
++at-nbp	202/udp
++at-echo	204/tcp
++at-echo	204/udp
++at-zis	206/tcp
++at-zis	206/udp
++qmtp	209/tcp
++qmtp	209/udp
++z39.50	210/tcp	z3950 wais
++z39.50	210/udp	z3950 wais
++ipx	213/tcp
++ipx	213/udp
++imap3	220/tcp
++imap3	220/udp
++link	245/tcp	ttylink
++link	245/udp	ttylink
++rsvp_tunnel	363/tcp
++rsvp_tunnel	363/udp
++rpc2portmap	369/tcp
++rpc2portmap	369/udp
++codaauth2	370/tcp
++codaauth2	370/udp
++ulistproc	372/tcp	ulistserv
++ulistproc	372/udp	ulistserv
++ldap	389/tcp
++ldap	389/udp
++svrloc	427/tcp
++svrloc	427/udp
++mobileip-agent	434/tcp
++mobileip-agent	434/udp
++mobilip-mn	435/tcp
++mobilip-mn	435/udp
++https	443/tcp
++https	443/udp
++snpp	444/tcp
++snpp	444/udp
++microsoft-ds	445/tcp
++microsoft-ds	445/udp
++kpasswd	464/tcp	kpwd
++kpasswd	464/udp	kpwd
++smtps	465/tcp
++photuris	468/tcp
++photuris	468/udp
++saft	487/tcp
++saft	487/udp
++gss-http	488/tcp
++gss-http	488/udp
++pim-rp-disc	496/tcp
++pim-rp-disc	496/udp
++isakmp	500/tcp
++isakmp	500/udp
++biff	512/udp	comsat
++exec	512/tcp
++login	513/tcp
++who	513/udp	whod
++shell	514/tcp	cmd
++syslog	514/udp
++printer	515/tcp	spooler
++printer	515/udp	spooler
++talk	517/udp
++ntalk	518/udp
++utime	519/tcp	unixtime
++utime	519/udp	unixtime
++efs	520/tcp
++router	520/udp	route routed
++ripng	521/tcp
++ripng	521/udp
++timed	525/tcp	timeserver
++timed	525/udp	timeserver
++tempo	526/tcp	newdate
++courier	530/tcp	rpc
++conference	531/tcp	chat
++netnews	532/tcp	readnews
++netwall	533/udp
++iiop	535/tcp
++iiop	535/udp
++gdomap	538/tcp
++gdomap	538/udp
++uucp	540/tcp	uucpd
++klogin	543/tcp
++kshell	544/tcp	krcmd
++dhcpv6-client	546/tcp
++dhcpv6-client	546/udp
++dhcpv6-server	547/tcp
++dhcpv6-server	547/udp
++afpovertcp	548/tcp
++afpovertcp	548/udp
++rtsp	554/tcp
++rtsp	554/udp
++remotefs	556/tcp	rfs_server rfs
++nntps	563/tcp
++nntps	563/udp
++whoami	565/tcp
++whoami	565/udp
++submission	587/tcp	msa
++submission	587/udp	msa
++npmp-local	610/tcp	dqs313_qmaster
++npmp-local	610/udp	dqs313_qmaster
++npmp-gui	611/tcp	dqs313_execd
++npmp-gui	611/udp	dqs313_execd
++hmmp-ind	612/tcp	dqs313_intercell
++hmmp-ind	612/udp	dqs313_intercell
++gii	616/tcp
++ldaps	636/tcp
++ldaps	636/udp
++acap	674/tcp
++acap	674/udp
++ha-cluster	694/tcp
++ha-cluster	694/udp
++kerberos-adm	749/tcp
++kerberos-iv	750/tcp	kerberos4 kerberos-sec kdc
++kerberos-iv	750/udp	kerberos4 kerberos-sec kdc
++kerberos_master	751/tcp
++kerberos_master	751/udp
++passwd_server	752/udp
++krb5_prop	754/tcp
++krbupdate	760/tcp	kreg
++webster	765/tcp
++webster	765/udp
++phonebook	767/tcp
++phonebook	767/udp
++omirr	808/tcp	omirrd
++omirr	808/udp	omirrd
++supfilesrv	871/tcp
++rsync	873/tcp
++rsync	873/udp
++swat	901/tcp
++telnets	992/tcp
++telnets	992/udp
++imaps	993/tcp
++imaps	993/udp
++ircs	994/tcp
++ircs	994/udp
++pop3s	995/tcp
++pop3s	995/udp
++socks	1080/tcp
++socks	1080/udp
++kpop	1109/tcp
++supfiledbg	1127/tcp
++skkserv	1178/tcp
++rmtcfg	1236/tcp
++h323hostcallsc	1300/tcp
++h323hostcallsc	1300/udp
++xtel	1313/tcp
++ms-sql-s	1433/tcp
++ms-sql-s	1433/udp
++ms-sql-m	1434/tcp
++ms-sql-m	1434/udp
++ica	1494/tcp
++ica	1494/udp
++wins	1512/tcp
++wins	1512/udp
++ingreslock	1524/tcp
++ingreslock	1524/udp
++prospero-np	1525/tcp
++prospero-np	1525/udp
++support	1529/tcp
++support	1529/tcp	prmsd gnatsd
++datametrics	1645/tcp	old-radius
++datametrics	1645/udp	old-radius
++sa-msg-port	1646/tcp	old-radacct
++sa-msg-port	1646/udp	old-radacct
++kermit	1649/tcp
++kermit	1649/udp
++l2tp	1701/tcp
++l2tp	1701/udp
++h323gatedisc	1718/tcp
++h323gatedisc	1718/udp
++h323gatestat	1719/tcp
++h323gatestat	1719/udp
++h323hostcall	1720/tcp
++h323hostcall	1720/udp
++tftp-mcast	1758/tcp
++tftp-mcast	1758/udp
++hello	1788/tcp
++hello	1788/udp
++radius	1812/tcp
++radius	1812/udp
++radius-acct	1813/tcp	radacct
++radius-acct	1813/udp	radacct
++mtp	1911/tcp
++mtp	1911/udp
++hsrp	1985/tcp
++hsrp	1985/udp
++licensedaemon	1986/tcp
++licensedaemon	1986/udp
++gdp-port	1997/tcp
++gdp-port	1997/udp
++cfinger	2003/tcp
++nfs	2049/tcp	nfsd
++nfs	2049/udp	nfsd
++knetd	2053/tcp
++zephyr-srv	2102/tcp
++zephyr-srv	2102/udp
++zephyr-clt	2103/tcp
++zephyr-clt	2103/udp
++zephyr-hm	2104/tcp
++zephyr-hm	2104/udp
++eklogin	2105/tcp
++ninstall	2150/tcp
++ninstall	2150/udp
++cvspserver	2401/tcp
++cvspserver	2401/udp
++venus	2430/tcp
++venus	2430/udp
++venus-se	2431/tcp
++venus-se	2431/udp
++codasrv	2432/tcp
++codasrv	2432/udp
++codasrv-se	2433/tcp
++codasrv-se	2433/udp
++zebrasrv	2600/tcp
++zebra	2601/tcp
++ripd	2602/tcp
++ripngd	2603/tcp
++ospfd	2604/tcp
++bgpd	2605/tcp
++ospf6d	2606/tcp
++corbaloc	2809/tcp
++afbackup	2988/tcp
++afbackup	2988/udp
++squid	3128/tcp
++icpv2	3130/tcp
++icpv2	3130/udp
++mysql	3306/tcp
++mysql	3306/udp
++trnsprntproxy	3346/tcp
++trnsprntproxy	3346/udp
++prsvp	3455/tcp
++prsvp	3455/udp
++rwhois	4321/tcp
++rwhois	4321/udp
++krb524	4444/tcp
++krb524	4444/udp
++fax	4557/tcp
++hylafax	4559/tcp
++rfe	5002/tcp
++rfe	5002/udp
++sgi-dgl	5232/tcp
++sgi-dgl	5232/udp
++cfengine	5308/tcp
++cfengine	5308/udp
++noclog	5354/tcp
++noclog	5354/udp
++hostmon	5355/tcp
++hostmon	5355/udp
++postgres	5432/tcp
++postgres	5432/udp
++cvsup	5999/tcp	CVSup
++cvsup	5999/udp	CVSup
++x11	6000/tcp	X
++ircd	6667/tcp
++ircd	6667/udp
++afs3-fileserver	7000/tcp
++afs3-fileserver	7000/udp
++afs3-callback	7001/tcp
++afs3-callback	7001/udp
++afs3-prserver	7002/tcp
++afs3-prserver	7002/udp
++afs3-vlserver	7003/tcp
++afs3-vlserver	7003/udp
++afs3-kaserver	7004/tcp
++afs3-kaserver	7004/udp
++afs3-volser	7005/tcp
++afs3-volser	7005/udp
++afs3-errors	7006/tcp
++afs3-errors	7006/udp
++afs3-bos	7007/tcp
++afs3-bos	7007/udp
++afs3-update	7008/tcp
++afs3-update	7008/udp
++afs3-rmtsys	7009/tcp
++afs3-rmtsys	7009/udp
++xfs	7100/tcp
++tircproxy	7666/tcp
++des	8000/tcp
++des3	8001/tcp
++http-alt	8008/tcp
++http-alt	8008/udp
++webcache	8080/tcp
++webcache	8080/udp
++tproxy	8081/tcp
++tproxy	8081/udp
++dungeon	8798/tcp
++advent4	8898/tcp
++jetdirect	9100/tcp	laserjet hplj
++mvmfg	9930/udp
++mandelspawn	9359/udp	mandelbrot
++sd	9876/tcp
++sd	9876/udp
++amanda	10080/tcp
++amanda	10080/udp
++kamanda	10081/tcp
++kamanda	10081/udp
++amandaidx	10082/tcp
++amidxtape	10083/tcp
++h323callsigalt	11720/tcp
++h323callsigalt	11720/udp
++isdnlog	20011/tcp
++isdnlog	20011/udp
++vboxd	20012/tcp
++vboxd	20012/udp
++binkp	24554/tcp
++binkp	24554/udp
++quake	26000/tcp
++quake	26000/udp
++wnn6-ds	26208/tcp
++wnn6-ds	26208/udp
++asp	27374/tcp
++asp	27374/udp
++traceroute	33434/tcp
++traceroute	33434/udp
++tfido	60177/tcp
++tfido	60177/udp
++fido	60179/tcp
++fido	60179/udp
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/unimac.conf uClinux-dist/vendors/Marvell/Libertas/unimac.conf
+--- uClinux-dist.orig/vendors/Marvell/Libertas/unimac.conf	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/unimac.conf	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,19 @@
++# Copyright: Marvell Inc.
++# Copnfiguration script for unimac network configuration
++#
++# Manufacture File
++#MFG_FILE = /etc/mfg_data
++MFG_FILE = /dev/mtd3
++#
++# Configure two VLANs
++VLANS = 2
++#
++# VLAN LAN and its ports
++VLAN=LAN
++PORTS=1,2,3,4
++#MAC=00:50:43:57:78:04
++#
++# VLAN WAN and its ports
++VLAN=WAN
++PORTS=0
++#MAC=00:00:20:20:21:23
+diff -urN uClinux-dist.orig/vendors/Marvell/Libertas/updateapd uClinux-dist/vendors/Marvell/Libertas/updateapd
+--- uClinux-dist.orig/vendors/Marvell/Libertas/updateapd	1969-12-31 19:00:00.000000000 -0500
++++ uClinux-dist/vendors/Marvell/Libertas/updateapd	2006-09-14 21:29:44.000000000 -0400
+@@ -0,0 +1,5 @@
++brctl delif br0 wlan0
++kill -1 24
++sleep 1
++brctl addif br0 wlan0
++
