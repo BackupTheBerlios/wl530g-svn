@@ -340,4 +340,40 @@ void reset_ino_dev_hashtable(void);
 extern size_t xstrlen(const char *string);
 #define strlen(x)	xstrlen(x)
 
+/* *** jmc: stuff from 1.2.1 *************************** */
+#define BB_GETOPT_ERROR 0x80000000UL
+#define ENABLE_GETOPT_LONG 1
+
+typedef struct llist_s {
+	char *data;
+	struct llist_s *link;
+} llist_t;
+extern void llist_add_to(llist_t **old_head, void *data);
+extern void llist_add_to_end(llist_t **list_head, void *data);
+extern void *llist_pop(llist_t **elm);
+extern void llist_free(llist_t *elm, void (*freeit)(void *data));
+
+#ifndef bb_show_usage
+#define bb_show_usage show_usage
+#endif
+
+#ifndef bb_perror_msg
+#define bb_perror_msg perror_msg
+#endif
+
+#ifndef bb_perror_msg_and_die
+#define bb_perror_msg_and_die perror_msg_and_die
+#endif
+
+#ifndef bb_mode_string
+#define bb_mode_string mode_string
+#endif
+
+#define L_llist_add_to
+#define L_llist_add_to_end
+#define L_llist_pop
+#define L_llist_free
+
+/* *** end stuff from 1.21 ***************************** */
+
 #endif /* __LIBBB_H__ */
