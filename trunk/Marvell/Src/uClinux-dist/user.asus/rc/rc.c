@@ -180,7 +180,10 @@ create_hostapd_conf(void)
 	FILE *fp;
 	char *tmpstr;
 	int mode;
-	char szBuffer[64];	
+
+#define WL_NVRAM_VALUE_BUFFER_SIZE 64	
+
+	char szBuffer[WL_NVRAM_VALUE_BUFFER_SIZE];	
 
 	// create hostapd.conf
 	fp=fopen("/tmp/hostapd.conf","w");
@@ -191,22 +194,33 @@ create_hostapd_conf(void)
 
 	if (HAVE_MFG_DATA) fprintf(fp, "manuf_file=%s\n", MFG_DEV);
 	else fprintf(fp, "manuf_file=/etc/mfg_data\n");
-	fprintf(fp, "interface=wlan0\n");
-	fprintf(fp, "logger_syslog=-1\n");
-	fprintf(fp, "logger_syslog_level=4\n");	
-	fprintf(fp, "logger_stdout=-1\n");	
-	fprintf(fp, "logger_stdout_level=4\n");	
-	fprintf(fp, "debug=0\n");
-	fprintf(fp, "dump_file=/tmp/hostapd.dump\n");	
-	fprintf(fp, "daemonize=1\n");
+	fprintf(fp, "interface=%s\n", \
+		nvram_safe_get_with_default("wl_interface","wlan0",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
+	fprintf(fp, "logger_syslog=%s\n", \
+		nvram_safe_get_with_default("wl_logger_syslog","-1",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
+	fprintf(fp, "logger_syslog_level=%s\n", \
+		nvram_safe_get_with_default("wl_logger_syslog_level","4",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
+	fprintf(fp, "logger_stdout=%s\n", \
+		nvram_safe_get_with_default("wl_logger_stdout","-1",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
+	fprintf(fp, "logger_stdout_level=%s\n",	\
+		nvram_safe_get_with_default("wl_logger_stdout_level","4",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
+	fprintf(fp, "debug=%s\n", \
+		nvram_safe_get_with_default("wl_debug","0",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
+	fprintf(fp, "dump_file=%s\n", \
+		nvram_safe_get_with_default("wl_dump_file","/tmp/hostapd.dump",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
+	fprintf(fp, "daemonize=%s\n", \
+		nvram_safe_get_with_default("wl_daemonize","1",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
 
 #ifdef WPA2 // Those setting starts from V2.0
 	if (nvram_match("wl_radio_x", "1"))
 		fprintf(fp, "wireless_enable=1\n");
 	else fprintf(fp, "wireless_enable=0\n");
-	fprintf(fp, "auto_link=0\n");
-	fprintf(fp, "ssid_patch=0\n");
-	fprintf(fp, "speed_booster=0\n");
+	fprintf(fp, "auto_link=%s\n", \
+		nvram_safe_get_with_default("wl_auto_link","0",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
+	fprintf(fp, "ssid_patch=%s\n", \
+		nvram_safe_get_with_default("wl_ssid_patch","0",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
+	fprintf(fp, "speed_booster=%s\n", \
+		nvram_safe_get_with_default("wl_speed_boster","0",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
 #endif
 
 	if (nvram_match("wl_gmode", "1")) //Auto
@@ -258,7 +272,8 @@ create_hostapd_conf(void)
 		fprintf(fp, "g_protect=0\n");
 	}
 		
-	fprintf(fp, "iw_mode=%s\n",nvram_safe_get_with_default("iw_mode","3",szBuffer,sizeof(szBuffer)));	
+	fprintf(fp, "iw_mode=%s\n", \
+		nvram_safe_get_with_default("iw_mode","3",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
 
 	if (nvram_match("wl_rate", "0"))
 	{
@@ -314,13 +329,18 @@ create_hostapd_conf(void)
 	fprintf(fp, "dtim_period=%s\n", nvram_safe_get("wl_dtim")); 	
 	fprintf(fp, "rts_threshold=%s\n", nvram_safe_get("wl_rts")); 		
 	fprintf(fp, "fragment_threshold=%s\n", nvram_safe_get("wl_frag")); 	
-	fprintf(fp, "short_retry_limit=7\n"); 		
-	fprintf(fp, "long_retry_limit=4\n");	
-	fprintf(fp, "current_tx_power_level=1\n");	
-	fprintf(fp, "short_preamble=1\n"); 			
+	fprintf(fp, "short_retry_limit=%s\n", \
+		nvram_safe_get_with_default("wl_short_retry_limit","7",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));		
+	fprintf(fp, "long_retry_limit=%s\n", \
+		nvram_safe_get_with_default("wl_long_retry_limit","4",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));		
+	fprintf(fp, "current_tx_power_level=%s\n", \
+		nvram_safe_get_with_default("wl_current_tx_power_level","1",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));			
+	fprintf(fp, "short_preamble=%s\n", \
+		nvram_safe_get_with_default("wl_short_preamble","1",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
 	fprintf(fp, "channel=%s\n", nvram_safe_get("wl_channel")); 		
 	fprintf(fp, "hide_ssid=%s\n", nvram_safe_get("wl_closed")); 	
-	fprintf(fp, "minimal_eap=0\n");
+	fprintf(fp, "minimal_eap=%s\n", \
+		nvram_safe_get_with_default("wl_minimal_eap","1",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));
 		
 	if (nvram_match("wl_auth_mode","shared"))
 	{
