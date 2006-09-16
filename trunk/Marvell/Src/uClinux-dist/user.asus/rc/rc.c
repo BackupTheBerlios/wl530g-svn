@@ -273,7 +273,7 @@ create_hostapd_conf(void)
 	}
 		
 	fprintf(fp, "iw_mode=%s\n", \
-		nvram_safe_get_with_default("iw_mode","3",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
+		nvram_safe_get_with_default("wl_iwmode","3",szBuffer,WL_NVRAM_VALUE_BUFFER_SIZE));	
 
 	if (nvram_match("wl_rate", "0"))
 	{
