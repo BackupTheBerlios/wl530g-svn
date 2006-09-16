@@ -1,15 +1,21 @@
+This buildroot is still a mess. It's getting better, but you must manually
+put new files into the firmware filesystem, which has its advantages and
+disadvantages. I'm working on getting all Makefiles set up so they install
+to the firmware filesystem (instead of romfs), and do so appropriately.
 
-This buildroot is a total mess right now, mostly because the vendor firmware was a total mess. As things progress, it'll be cleaned up. For now, you're going to have to manually copy built target files to the firmware filesystem before and invoke ./create_firmware.sh. Not really that much trouble since for any given build most files won't change, but eventually it will all be automated.
+HowTo build a firmware image (doesn't require compiling):
 
-jr has completed patches for uClinux 2.4.32, but I haven't integrated them in yet.
+1.) edit the files in firmware_files/rootfs however you wish.
+    These are the files the firmware image contains.
+2.) run create_firmware_image.sh to build a firmware with today's date.
 
-HowTo:
+HowTo compile your own packages and/or kernel:
 
-1.) extract latest firmware image with extract_firmware.sh
-2.) go build whatever new packages you want, and/or kernel
-3.) if desired, install built packages into extracted filesystem (working_dir/rootfs/).
-4.) if desired, install new kernel into extracted filesystem (working_dir/image_parts/segment1)
-5.) rebuild firmware image with ./create_firmware_image.sh or use the firmware mod kit.
-
+1.) Follow the instructios in Marvell/ReadMe.txt but put built files in the
+    above mentioned directory instead of the 'filesystem' directory it
+    mentions.
+2.) The kernel can be replaced by storing the new zImage as 
+    firmware_files/image_parts/segment1. Note that the size should be
+    <= 0xA0000 bytes.
 
 - jeremy collake <jeremy.collake@gmail.com>
