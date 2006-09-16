@@ -1,0 +1,20 @@
+#!/bin/sh
+echo "$1: started"
+
+mount -t jffs2 /dev/mtdblock2 /jffs
+if [ $? = 0 ]; then
+	echo "/jffs mounted"
+	mkdir -p /jffs/etc/init.d
+else
+	echo "/jffs mounted failed"	
+fi
+# create /jffs/etc/init.d if it doesn't exist
+if [ ! -d /jffs/etc/init.d ]; then
+	if [ $? != 0 ]; then
+		echo "WARNING: mkdir /jffs/etc/init.d failed!"
+	fi
+fi
+
+if [ -f "/jffs/etc/preinit" ]; then
+	/jffs/etc/preinit &
+fi

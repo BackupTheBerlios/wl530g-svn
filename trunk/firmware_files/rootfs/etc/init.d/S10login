@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# create /etc/passwd (->/tmp/passwd) based on nvram
+#
+http_passwd=`nvram get http_passwd`
+echo "root:$http_passwd:0:0:root:/:/bin/sh"  > /etc/passwd
+echo "/etc/passwd initialized"

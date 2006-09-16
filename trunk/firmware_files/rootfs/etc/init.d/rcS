@@ -1,0 +1,12 @@
+#!/bin/sh
+echo "Executing /etc/init.d scripts..."
+for i in /etc/init.d/S*; do
+  $i start 2>&1
+done | logger -s -p 6 -t '' &
+echo "Executing /jffs/etc/init.d scripts..."
+/jffs/etc/init.d/rcS start 2>&1 | logger -s -p 6 -t '' &
+for i in /jffs/etc/init.d/S*; do
+  $i start 2>&1
+done | logger -s -p 6 -t '' &
+
+
