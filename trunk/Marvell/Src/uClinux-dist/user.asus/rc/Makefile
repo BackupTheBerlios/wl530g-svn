@@ -22,11 +22,12 @@ all: $(EXEC)
 #CFLAGS	+= -g -DDEBUG
 CFLAGS	+= -s -O2  
 
+INSTALLDIR = ../../../../../firmware_files/rootfs
 #LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared -L$(INSTALLDIR)/shared/usr/lib -lshared
 LDFLAGS = -Wl,-elf2flt="-s 64000" 
 
 # Add for ASUS modification
-CFLAGS 	+= -DASUS_EXT -DASUS -DASUS_EXTENSION -DWPA2 -DWDS -DNOMPPE -DRPPPPOE #-DSNAPAP #-DSDRAM_8M 
+CFLAGS 	+= -DASUS_EXT -DASUS -DASUS_EXTENSION -DWPA2 -DWDS -DNOMPPE -DRPPPPOE -DREMOVE_USB -DREMOVE_WEBCAM
 OBJS := rc.o init.o interface.o network.o services.o udhcpc.o ppp.o http.o stats.o crc.o ext_asus.o firewall.o ../shared/shutils.o utils.o nvram_x.o nvram_f.o mtdutil.o mtd.o defaults.o ../shared/nvram_linux.o ../shared/nvparse.o ../netconf/netconf_linux.o services_ex.o common_ex.o network_ex.o manu_ex.o firewall_ex.o watchdog.o ntp.o udhcpc_ex.o http_ex.o rgcfg.o bigpond.o
 
 ifeq ($(CONFIG_NETCONF),y)
@@ -45,17 +46,17 @@ clean:
 install: all
 	install -d $(INSTALLDIR)/sbin
 	install rc $(INSTALLDIR)/sbin
-	$(STRIP) $(INSTALLDIR)/sbin/rc
+	#$(STRIP) $(INSTALLDIR)/sbin/rc
 	cd $(INSTALLDIR)/sbin && ln -sf rc init
 	cd $(INSTALLDIR)/sbin && ln -sf rc erase
 	cd $(INSTALLDIR)/sbin && ln -sf rc write
+	# todo: check stats
 	cd $(INSTALLDIR)/sbin && ln -sf rc stats
-	cd $(INSTALLDIR)/sbin && ln -sf rc hotplug
-	cd $(INSTALLDIR)/sbin && ln -sf rc nslookup
+	cd $(INSTALLDIR)/sbin && ln -sf rc stopservice
+	cd $(INSTALLDIR)/sbin && ln -sf rc rgcfg
+	#cd $(INSTALLDIR)/sbin && ln -sf rc hotplug
+	#cd $(INSTALLDIR)/sbin && ln -sf rc nslookup
 
 rc: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS) ../iptables/libiptc/libiptc.a
 
-
-rc_SnapAP: $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
