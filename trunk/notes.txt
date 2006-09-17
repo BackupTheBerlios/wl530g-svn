@@ -1,0 +1,48 @@
+ /* operation mode, 0: ap, 1: p2p */
+
+		HOSTAPD_LEVEL_DEBUG_VERBOSE = 0,
+		HOSTAPD_LEVEL_DEBUG = 1,
+		HOSTAPD_LEVEL_INFO = 2,
+		HOSTAPD_LEVEL_NOTICE = 3,
+		HOSTAPD_LEVEL_WARNING = 4
+
+wl_iwmode 
+ : 1 = adhoc mode
+ : 2 = client mode
+ : 3 = AP mode
+ : 4 = Network
+
+wl_mode_x  
+ : 0 = AP mode  - WDS
+ : 1 = p2p mode - WDS
+
+wl_logger_syslog_level
+wl_logger_stdout_level
+ : 0 = debug - verbose
+ : 1 = debug
+ : 2 = info
+ : 3 = notice
+ : 4 = warning
+
+
+The new nvram variables are below. They are unset by default, so don't expect to see them in 'nvram show' unless you set them.
+
+VARIABLE 			DEFAULT VALUE
+
+wl_iwmode 			3
+wl_short_retry_limit 		7 
+wl_long_retry_limit 		4 
+wl_current_tx_power_level	1 
+wl_short_preamble 		1 
+wl_minimal_eap 		1 
+wl_interface 			wlan0 
+wl_logger_syslog 		-1 
+wl_logger_syslog_level 		1
+wl_logger_stdout 		-1 
+wl_logger_stdout_level		4 
+wl_debug			0
+wl_dump_file			/tmp/hostapd.dump 
+wl_daemonize			1 
+wl_auto_link			0 
+wl_ssid_patch			0 
+wl_speed_boster			0 
