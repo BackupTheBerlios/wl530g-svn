@@ -10,7 +10,7 @@ CC=arm-elf-gcc
 STRIP=arm-elf-strip
 INSTALLDIR=../../../../../firmware_files/rootfs/
 
-CFLAGS	+= -I. -I../shared/include -I/Marvell/Src/uClinux-dist/uClibc/include -Wall -Dlinux -DFLASH_EMULATOR -DLinux -DEMBED -DASUS #-DMIPS
+CFLAGS	+= -I. -I../shared/include -I/Marvell/Src/uClinux-dist/uClibc/include -Wall -Dlinux -DLinux -DEMBED -DASUS 
 
 #CFLAGS	+= -g -DDEBUG
 CFLAGS	+= -s -O2
