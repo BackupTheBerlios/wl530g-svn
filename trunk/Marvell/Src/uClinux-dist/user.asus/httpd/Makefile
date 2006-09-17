@@ -3,37 +3,27 @@
 #
 # Copyright (C) 2001 Broadcom Corporation
 #
-# $Id: Makefile,v 1.3 2004/01/05 05:39:17 Cheni_Shen Exp $
+# $Id $
 #
-
 CC=arm-elf-gcc
 STRIP=arm-elf-strip
-INSTALLDIR=../../../../../firmware_files/rootfs/
-
-CFLAGS	+= -I. -I../shared/include -I/Marvell/Src/uClinux-dist/uClibc/include -Wall -Dlinux -DLinux -DEMBED -DASUS 
-
+INSTALLDIR=../../../../../firmware_files/rootfs/CFLAGS	+= -I. -I../shared/include -I/Marvell/Src/uClinux-dist/uClibc/include -Wall -Dlinux -DLinux -DEMBED -DASUS 
 #CFLAGS	+= -g -DDEBUG
 CFLAGS	+= -s -O2
-LDFLAGS	+= -Wl,-elf2flt="" #-L$(TOP)/nvram
-
-#CFLAGS	+= -I. -I$(TOP)/shared -I$(SRCBASE)/include -Wall -DFLASH_EMULATOR -DLinux -DMIPS -DASUS
-
-#CFLAGS	+= -g -DDEBUG
-CFLAGS	+= -s -O2
-LDFLAGS	+= #-L$(TOP)/nvram -L$(TOP)/shared -L$(TOP)/netconf
-
+LDFLAGS	+= -Wl,-elf2flt=""
 vpath %.c $(TOP)/shared
 vpath %.c $(TOP)/shared_common
 
 all: httpd
-	#$(STRIP) httpd
 
 clean:
 	rm -f *.o *~ httpd
 
-install: all
+romfs: all
 	install -D httpd $(INSTALLDIR)/sbin/httpd
-	#$(STRIP) $(INSTALLDIR)/usr/sbin/httpd
+
+install: all
+	install -D httpd $(INSTALLDIR)/sbin/httpd	
 
 httpd: httpd.o ej.o cgi.o web_ex.o ../shared/shutils.o common.o nvram_f.o nvmap.o utility.o ../shared/nvram_linux.o ../netconf/netconf_linux.o
-	$(CC) -o $@ $^ $(LDFLAGS) ../iptables/libiptc/libiptc.a #-lnvram -lshared -lnetconf
+	$(CC) -o $@ $^ $(LDFLAGS) ../iptables/libiptc/libiptc.a
