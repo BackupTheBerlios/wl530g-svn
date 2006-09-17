@@ -1,13 +1,16 @@
-This buildroot is still a mess. It's getting better, but you must manually
-put new files into the firmware filesystem, which has its advantages and
-disadvantages. I'm working on getting all Makefiles set up so they install
-to the firmware filesystem (instead of romfs), and do so appropriately.
+-----------------------------------------------------
+
+This buildroot is still a mess, but it's getting better.
+
+-----------------------------------------------------
 
 HowTo build a firmware image (doesn't require compiling):
 
 1.) edit the files in firmware_files/rootfs however you wish.
     These are the files the firmware image contains.
 2.) run create_firmware_image.sh to build a firmware with today's date.
+
+-----------------------------------------------------
 
 HowTo compile your own packages and/or kernel:
 
@@ -27,21 +30,33 @@ HowTo compile your own packages and/or kernel:
     any you want into the firmware filesystem. You should place packages that have
     vendor/board specific extensions here.
 
+-----------------------------------------------------
 
 Advanced HowTo:
-	Rebuilding the toolchains:
-		See build-uclinux-tools.sh here (GCC 2.9.5):		
-			http://www.uclinux.org/pub/uClinux/arm-elf-tools/tools-20030314/
-		All files in that folder are pre-requisites, you must get them all.
 
+In order to build BusyBox 1.21 you must rebuild the arm-elf uClibc toolchains so that appropriate
+settings are made. 
+
+	Rebuilding the toolchains:
+
+		See build-uclinux-tools.sh in the uCLinux-dist folder. Do NOT use the standard
+		one since I've patched this copy up as necessary for our needs. Prequisites can
+		be found here (download all of them, except the build-uclinix-tools.sh):		
+
+			http://www.uclinux.org/pub/uClinux/arm-elf-tools/tools-20030314/
+
+				
 		Alternatively, you can check out the newer GCC 3.4.0 toolchains here:
-			http://www.uclinux.org/pub/uClinux/arm-elf-tools/gcc-3/
-		Note: GCC 3.4.0 may not work right with this uClinux-dist. Minor code
-		 tweaks here and there seem required.
 		
+			http://www.uclinux.org/pub/uClinux/arm-elf-tools/gcc-3/
+
+		Note: GCC 3.4.0 may not work right with this uClinux-dist. Minor code
+		 tweaks here and there seem required.		
 
 		There are also experimental GCC 4.0 toolchains.
 			
+
+-----------------------------------------------------
 		
 For help, visit the forums. 
 
