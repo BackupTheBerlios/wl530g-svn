@@ -421,7 +421,11 @@ start_logger(void)
 	}
 	else
 	{
+#ifdef SYSLOGD_TIMEZONE_SUPPORT
 		char *syslogd_argv[] = {"syslogd", "-m", "0", "-t", nvram_safe_get("time_zone_x"), "-O", "/tmp/syslog.log", NULL};
+#else
+		char *syslogd_argv[] = {"syslogd", "-m", "0", "-O", "/tmp/syslog.log",NULL};
+#endif
 		char *klogd_argv[] = {"klogd", NULL, NULL};
 
 		if (nvram_match("log_all", "1"))
