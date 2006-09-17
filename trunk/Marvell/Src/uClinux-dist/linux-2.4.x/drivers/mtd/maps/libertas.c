@@ -1,10 +1,10 @@
 /*
- *	libertas.c - mapper for Marvell Libertas AP-32 board.
+ * libertas.c - mapper for Marvell Libertas AP-32 board.
  *
  * Copyright (C) 2003 - 2005 Marvell Co.
+ * 			Jeremy Collake <jeremy@bitsum.com>
  *
  * This code is GPL
- *
  */
 
 #include <linux/config.h>
@@ -51,40 +51,27 @@ struct map_info libertas_map = {
  
 static struct mtd_partition libertas_partitions[] = {
 	{
-		name: "Libertas AP-32 compressed kernel",
-#ifdef PROTECTION
-		size:   0x000A0000,
-		offset: 0x00000000,
-		mask_flags: MTD_WRITEABLE
-#else
+		name: "Liberated Libertas kernel",
 		size:   0x00380000,
 		offset: 0x00000000
-#endif
-
 	},
 	{
-		name: "Libertas AP-32 cramfs root file system",
-#ifdef ROOTFS_PROTECTION
-		size:   0x002B0000,
-		offset: 0x000A0000,
-		mask_flags: MTD_WRITEABLE
-#else
-		size:   0x002B0000,
+		name: "Libertas AP-32 rootfs",
+		size:   0x00290000,
 		offset: 0x000A0000
-#endif
 	},
 	{
-		name: "Libertas AP-32 jffs2 file system",
-		size:   0x00070000,
-		offset: 0x00350000,
+		name: "Libertas AP-32 jffs2",
+		size:   0x00090000,
+		offset: 0x00330000,
 	},
 	{
-		name: "Libertas AP-32 nvram data",
+		name: "Libertas AP-32 nvram",
 		size:   0x00010000,
 		offset: 0x003C0000,
 	},
 	{
-		name: "Libertas AP-32 manufacture data",
+		name: "Libertas AP-32 mfgdata",
 		size:   0x00010000,
 		offset: 0x003D0000,
 	}
@@ -105,7 +92,7 @@ int __init init_libertas(void)
 	struct mtd_info *mtd;
 	int             ret_val;
 	
-	printk(KERN_NOTICE "Marvell Libertas AP-32 flash mapping: %x at %x\n", WINDOW_SIZE, WINDOW_ADDR);
+	printk(KERN_NOTICE "Liberated Libertas AP-32 flash mapping: %x at %x\n", WINDOW_SIZE, WINDOW_ADDR);
 
 	libertas_map.virt = (unsigned long) ioremap(WINDOW_ADDR, WINDOW_SIZE);
 
@@ -128,7 +115,8 @@ int __init init_libertas(void)
 	if (ret_val != SUCCESS)
 		return ret_val;
 
-	mtd = get_mtd_named("Libertas AP-32 romfs root file system");
+/*	mtd = get_mtd_named("Libertas AP-32 rootfs"); */
+	mtd = get_mtd_device(NULL, 1);
 	
 	if (mtd) {
 		ROOT_DEV = MKDEV(MTD_BLOCK_MAJOR, mtd->index);
@@ -154,7 +142,7 @@ static void __exit cleanup_libertas(void)
 /*
  * Find the MTD device with the given name
  */
-
+/*
 static struct mtd_info *get_mtd_named(char *name)
 {
 	int i;
@@ -171,7 +159,7 @@ static struct mtd_info *get_mtd_named(char *name)
 	
 	return(NULL);
 }
-
+*/
 
 module_init(init_libertas);
 module_exit(cleanup_libertas);
