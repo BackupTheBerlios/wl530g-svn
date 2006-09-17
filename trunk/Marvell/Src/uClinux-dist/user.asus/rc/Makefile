@@ -15,12 +15,15 @@
 #include $(TOP)/.config
 CC=arm-elf-gcc
 
-CFLAGS += -I. -I../shared/include #-I../netconf -I/Marvell/temp/V1.0.6-05-31-2004/Src/uClinux-dist/linux-2.4.x/include -I../iptables/include
+CFLAGS += -I. -I../shared/include 
 CFLAGS += -I../../user/ffnetdrv/include -I../../user/ffnetdrv/qd_drv/include -I../ffnetdrv/unimac
 all: $(EXEC)
-#CFLAGS	+= -I. -I$(TOP)/shared -I$(SRCBASE)/include -Wall
-#CFLAGS	+= -g -DDEBUG
 CFLAGS	+= -s -O2  
+
+#################################
+# other defines:
+# -DDEBUG
+# -DSYSLOGD_TIMEZONE_SUPPORT
 
 INSTALLDIR = ../../../../../firmware_files/rootfs
 #LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared -L$(INSTALLDIR)/shared/usr/lib -lshared
