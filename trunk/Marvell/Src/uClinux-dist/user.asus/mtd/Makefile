@@ -3,9 +3,9 @@
 LINUX_SRC := ../../uClinux-dist/linux-2.4.x
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 CC := arm-elf-gcc
-CFLAGS	+= -I. -Wall -Dlinux 
+CFLAGS	+= -I. -nostdinc -Wall -Dlinux 
 LDFLAGS	+= -Wl,-elf2flt=""
-INSTALL_TARGET = ../../../../../firmware_files/db90h_edition/rootfs
+INSTALL_TARGET = ../../../../../firmware_files/rootfs
 
 all: mtd
 
