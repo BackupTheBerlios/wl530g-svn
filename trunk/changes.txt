@@ -1,4 +1,11 @@
 
+09/17/06
+
+  * addition: busybox 1.2.1 is here with all the beloved gifts it has to offer! Almost all existing applets enhanced in some way or another (i.e. tab file/dirname completion), and many new applets are available (i.e. netstat).
+  * addition: added gpio user utility to enable/disable/poll gpio interrupts.
+  * change: created a small (8KB) reboot tool instead of using busybox's built in one.
+  * fix: much needed file system cleanup.
+  * note: this build will not clear your jffs2 if upgrade from 09/16/06 build (it will from any others).
 
 
 09/16/06
