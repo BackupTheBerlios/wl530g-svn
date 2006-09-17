@@ -1,15 +1,27 @@
 #!/bin/sh
-echo "$1: started"
+echo "$0: started"
 
 mount -t jffs2 /dev/mtdblock2 /jffs
-if [ $? = 0 ]; then
+
+firmver=`cat "/etc/.firmver"`
+firmver2=`cat "/jffs/.firmver"`
+if [ "$firmver" != "$firmver2" ]; then
+	echo "Firmware upgrade detected! Erasing JFFS ..."
+	umount /jffs
+	mtd erase /dev/mtd2
+	mount -t jffs2 /dev/mtdblock2 /jffs
+fi
+
+cp "/etc/.firmver" "/jffs/.firmver"
+if [ -d "/jffs" ]; then
 	echo "/jffs mounted"
 	mkdir -p /jffs/etc/init.d
 else
-	echo "/jffs mounted failed"	
+	echo "/jffs mounted failed!"	
 fi
+
 # create /jffs/etc/init.d if it doesn't exist
-if [ ! -d /jffs/etc/init.d ]; then
+if [ ! -d "/jffs/etc/init.d" ]; then
 	if [ $? != 0 ]; then
 		echo "WARNING: mkdir /jffs/etc/init.d failed!"
 	fi
