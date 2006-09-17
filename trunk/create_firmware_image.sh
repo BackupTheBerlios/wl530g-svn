@@ -10,12 +10,8 @@ echo " Extracting devices ..."
 cd firmware_files
 tar -xzvf dev.tar.gz -C rootfs/ 2>&1 >> ../build.log
 cd ..
-echo " Copying filesystem and deleting svn files ..."
-rm -rf build_temp
-cp -r firmware_files build_temp
-for i in $(find build_temp/ | grep .svn); do
-	rm -rf $i
-done
+echo " Exporting filesystem ..."
+svn export firmware_files/ build_temp/
 echo " Building firmware image.."
 cd firmware-mod-kit
 ./build_firmware.sh ../firmware_images/temp ../build_temp
