@@ -8,6 +8,7 @@
 
 CC=arm-elf-gcc
 STRIP=arm-elf-strip
+INSTALLDIR=../../../../../firmware_files/rootfs/
 
 CFLAGS	+= -I. -I../shared/include -I/Marvell/Src/uClinux-dist/uClibc/include -Wall -Dlinux -DFLASH_EMULATOR -DLinux -DEMBED -DASUS #-DMIPS
 
@@ -31,7 +32,7 @@ clean:
 	rm -f *.o *~ httpd
 
 install: all
-	install -D httpd $(INSTALLDIR)/usr/sbin/httpd
+	install -D httpd $(INSTALLDIR)/bin/httpd
 	#$(STRIP) $(INSTALLDIR)/usr/sbin/httpd
 
 httpd: httpd.o ej.o cgi.o web_ex.o ../shared/shutils.o common.o nvram_f.o nvmap.o utility.o ../shared/nvram_linux.o ../netconf/netconf_linux.o
