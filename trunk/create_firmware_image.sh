@@ -6,12 +6,12 @@ current_date=$(date +%m%d%y)
 OUTPUT_FILE=wl530g_db90h_"$current_date"_en.bin
 echo " Final output image will be $OUTPUT_FILE"
 echo " Log for $OUTPUT_FILE" > build.log
-echo " Extracting devices ..."
-cd firmware_files
-tar -xzvf dev.tar.gz -C rootfs/ 2>&1 >> ../build.log
-cd ..
 echo " Exporting filesystem ..."
 svn export firmware_files/ build_temp/
+echo " Extracting devfs ..."
+cd build_temp
+tar -xzvf dev.tar.gz -C rootfs/ 2>&1 >> ../build.log
+cd ..
 echo " Building firmware image.."
 cd firmware-mod-kit
 ./build_firmware.sh ../firmware_images/temp ../build_temp
