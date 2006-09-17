@@ -54,9 +54,9 @@ LINKFLAGS	+= -EB
 LDFLAGS		+= -EB
 endif
 
-#CFLAGS		+= $(apcs-y) $(arch-y) $(tune-y) -mshort-load-bytes -msoft-float
+CFLAGS		+= $(apcs-y) $(arch-y) $(tune-y) -mshort-load-bytes -msoft-float
 # for gcc 3.4.0
-CFLAGS		+= $(apcs-y) $(arch-y) $(tune-y) -msoft-float
+#CFLAGS		+= $(apcs-y) $(arch-y) $(tune-y) -msoft-float
 AFLAGS		+= $(apcs-y) $(proc-y) -msoft-float -mno-fpu
 
 LIBGCC		:= $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
