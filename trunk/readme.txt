@@ -16,7 +16,7 @@ HowTo compile your own packages and/or kernel:
 
 1.) Download and install toolchains built specifically for this firmware:
     http://www.bitsum.com/files/wl530g/arm-elf-tools-20060917.tar.gz    
-    sh ./arm-elf-tools-20060917.sh
+    	sh ./arm-elf-tools-20060917.sh
     If this fails, use dd to extract the tar.gz to / (root).
 2.) Go to Marvell/Src/uClinux-dist.
 3.) Run 'make menuconfig' to configure the kernel and user packages to build.
@@ -25,10 +25,11 @@ HowTo compile your own packages and/or kernel:
     firmware_files/image_parts/segment1. Note that the size should be
     <= 0xA0000 bytes.
 6.) Some packages aren't in the primary makefile and can be found in:
-     uClinux-dist/user.asus
+     	uClinux-dist/user.asus
     At present, you must build these packages individually and install 
     any you want into the firmware filesystem. You should place packages that have
     vendor/board specific extensions here.
+
 
 For help, visit the forums. 
 
