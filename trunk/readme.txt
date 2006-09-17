@@ -24,12 +24,31 @@ HowTo compile your own packages and/or kernel:
 6.) Some packages aren't in the primary makefile and can be found in:
      uClinux-dist/user.asus
     At present, you must build these packages individually and install 
-    any you want into the firmware filesystem. You should place new packages
-    in the user.asus directory as well.
+    any you want into the firmware filesystem. You should place packages that have
+    vendor/board specific extensions here.
 
+
+Advanced HowTo:
+	Rebuilding the toolchains:
+		See build-uclinux-tools.sh here (GCC 2.9.5):		
+			http://www.uclinux.org/pub/uClinux/arm-elf-tools/tools-20030314/
+		All files in that folder are pre-requisites, you must get them all.
+
+		Alternatively, you can check out the newer GCC 3.4.0 toolchains here:
+			http://www.uclinux.org/pub/uClinux/arm-elf-tools/gcc-3/
+		Note: GCC 3.4.0 may not work right with this uClinux-dist. Minor code
+		 tweaks here and there seem required.
+		
+
+		There are also experimental GCC 4.0 toolchains.
+			
+		
 For help, visit the forums. 
 
 I'm happily extending write access to anyone willing to help with development.
 If you are interested, email me. 
 
 - jeremy collake <jeremy.collake@gmail.com>
+
+
+
