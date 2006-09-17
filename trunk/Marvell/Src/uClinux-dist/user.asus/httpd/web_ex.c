@@ -52,13 +52,13 @@
 #define do_file(webs, file)
 #endif
 
-#define sys_upgrade(image) eval("write", image, "/dev/mtd0")
+#define sys_upgrade(image) eval("mtd", "write", image, "/dev/mtd0")
 #define sys_upload(image) eval("nvram", "restore", image)
 #define sys_download(file) eval("nvram", "save", file)
 #define sys_stats(url) eval("stats", (url))
-#define sys_restore(sid) eval("nvram_x","get",(sid))
+/*#define sys_restore(sid) eval("nvram_x","get",(sid))*/
 #define sys_commit(sid) nvram_commit();
-#define sys_default()   eval("erase", "/dev/mtd2")
+#define sys_default()   eval("mtd", "erase", "/dev/mtd3")
 #define sys_nvram_set(param) eval("nvram", "set", param)
 
 #define UPNP_E_SUCCESS 0
@@ -1912,8 +1912,7 @@ do_internal_cgi(char *url, FILE *stream)
 #endif
 
 #if defined(linux)
-
-
+#ifdef WEBCAM_CRAP
 static void
 do_webcam_cgi(char *url, FILE *stream)
 {
@@ -1936,6 +1935,7 @@ do_webcam_cgi(char *url, FILE *stream)
 	cprintf("\nWebCam: %s\n", pic);
 	do_file(pic, stream);
 }
+#endif
 
 static void
 do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
@@ -1961,6 +1961,7 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 	{
 	     if (!fgets(buf, MIN(len + 1, sizeof(buf)), stream))
 	     {			
+			cprintf("httpd: error - no file\n");
 			goto err;
 	     }			
 		
@@ -1968,18 +1969,24 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 		
 	     if (!strncasecmp(buf, "Content-Disposition:", 20) &&
 		    strstr(buf, "name=\"file\""))
+		{
+			cprintf("httpd: error - bad content 0\n");
 			break;			
+		}
+
 	}
 	
 	/* Skip boundary and headers */
 	while (len > 0) {
 		if (!fgets(buf, MIN(len + 1, sizeof(buf)), stream))
 		{
+			printf("httpd: error - bad content 1\n");
 			goto err;
 		}		
 		len -= strlen(buf);
 		if (!strcmp(buf, "\n") || !strcmp(buf, "\r\n"))
 		{
+			printf("httpd: error - bad content 2\n");
 			break;
 		}
 	}
@@ -1990,14 +1997,14 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
         cnt = 0;
         
 	/* Pipe the rest to the FIFO */
-	//printf("Upgrading %d\n", len);
+	cprintf("Upgrading %d\n", len);
 	cmpHeader = 0;
 	
 	while (len > 0 && filelen>0) 
 	{				
 		if (waitfor(fileno(stream), 10) <= 0)
 		{
-			/*printf("Break while len=%x filelen=%x\n", len, filelen);*/
+			cprintf("Break while len=%x filelen=%x\n", len, filelen);
 			break;
 		}
                 				
@@ -2007,7 +2014,7 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 		{		  
 		    if (strncmp(buf, IMAGE_HEADER, 4)!=0) 
 		    {
-		       /*printf("Header %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);*/
+		       cprintf("Header %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
 		       len-=count;
 		       goto err;
 		    }
@@ -2015,7 +2022,7 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 		    		   
 		    filelenptr = (buf+4);		   
 		    filelen = *filelenptr;		  
-		    /*printf("Filelen: %x %x %x %x %x %x\n", filelen, count, (unsigned long)(buf+4), (unsigned long)(buf+7), buf[5], buf[4]);*/
+		    cprintf("Filelen: %x %x %x %x %x %x\n", filelen, count, (unsigned long)(buf+4), (unsigned long)(buf+7), buf[5], buf[4]);
 		    cnt ++;
 		}
 		
@@ -2023,7 +2030,7 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 		len-=count;	
 										
 		fwrite(buf, 1, count, fifo);
-		/*printf(".");*/								   		
+		cprintf(".");
 	}		 		
 	
 	if (!cmpHeader) goto err;		
@@ -2072,7 +2079,7 @@ do_upgrade_post(char *url, FILE *stream, int len, char *boundary)
 #ifdef REMOVE_WL600
 	unlink(upload_fifo);
 #endif	
-	//printf("Error : %d\n", ret);	
+	cprintf("httpd: do_upgrade_post return %d\n", ret);	
 	fcntl(fileno(stream), F_SETOWN, -ret);
 }
 
@@ -2081,13 +2088,14 @@ do_upgrade_cgi(char *url, FILE *stream)
 {
 	int ret;
 	
-	//printf("Upgrade CGI\n");
+	cprintf("httpd: upgrade.cgi ..\n");
 
 	ret = fcntl(fileno(stream), F_GETOWN, 0);
 	
 	/* Reboot if successful */
 	if (ret == 0)
 	{
+		printf("httpd: Writing flash...\n");
                 websApply(stream, "Updating.asp"); 
 		sys_upgrade("/tmp/linux.trx");
 		sys_reboot();
@@ -2351,7 +2359,9 @@ struct mime_handler mime_handlers[] = {
 	{ "upgrade.cgi*", "text/html", no_cache, do_upgrade_post, do_upgrade_cgi, do_auth},
 	{ "upload.cgi*", "text/html", no_cache, do_upload_post, do_upload_cgi, do_auth },
  	{ "syslog.cgi*", "text/txt", no_cache, NULL, do_log_cgi, do_auth },
+#ifdef WEBCAM_CRAP
 	{ "webcam.cgi*", "text/html", no_cache, NULL, do_webcam_cgi, do_auth },
+#endif
 	{ NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
