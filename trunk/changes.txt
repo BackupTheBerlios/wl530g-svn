@@ -1,6 +1,16 @@
-Known Issues:
 
-  * upgrade from web UI doesn't work (yes, still).
+
+
+09/16/06
+
+  * addition: erase of jffs after firmware upgrade (fixes corruption).  
+  * change: kernel: removed 'kernel module loader' (not insmod, auto-loading by the kernel).
+  * change: kernel: a few minor optimizations and fixes to the mtd driver mapping code.
+  * change: increased jffs2 size by 64KB.
+  * change: changed web UI top graphic.
+  * fix: fixed firmware upgrade from web UI.
+  * fix: restore system defaults in web UI (mtd device # change).
+  * other misc. changes/fixes/additions.
 
 09/15/06
 
@@ -13,29 +23,6 @@ Known Issues:
   * increased jffs2 size by 64KB. You need to run 'mtd erase /dev/mtd2' after installation of this version (sorry).
   * renamed mtd partitions to more terse and accurate names.
   * other misc. changes.
-
-The new nvram variables are below. They are unset by default, so don't expect to see them in 'nvram show' unless you set them.
-
-VARIABLE 			DEFAULT VALUE
-
-wl_iwmode 			3
-wl_short_retry_limit 		7 
-wl_long_retry_limit 		4 
-wl_current_tx_power_level	1 
-wl_short_preamble 		1 
-wl_minimal_eap 		1 
-wl_interface 			wlan0 
-wl_logger_syslog 		-1 
-wl_logger_syslog_level 		1
-wl_logger_stdout 		-1 
-wl_logger_stdout_level		4 
-wl_debug			0
-wl_dump_file			/tmp/hostapd.dump 
-wl_daemonize			1 
-wl_auto_link			0 
-wl_ssid_patch			0 
-wl_speed_boster			0 
-
 
 09/13/06 (3)
 
