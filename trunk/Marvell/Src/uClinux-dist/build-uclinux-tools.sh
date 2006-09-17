@@ -182,6 +182,10 @@ stage1()
         ${PATCH} -p0 < gcc-2.95.3-cygwin-020611.patch
     fi
 	${PATCH} -p0 < STLport-4.5.3.patch
+#
+# jmc
+#
+       ${PATCH} -p0 < gcc-2.95.3-arm-build-fix.patch
 
 	rm -rf gcc-2.95.3/libio
 	rm -rf gcc-2.95.3/libstdc++
