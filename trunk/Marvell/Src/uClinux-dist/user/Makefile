@@ -332,20 +332,32 @@ all:
 		[ ! -d $$i ] || make -C $$i || exit $? ; \
 	done
 
+	# always build busybox 1.2.1 for now
+	make -C busybox-1.2.1
+
 romfs:
 	for i in $(dir_v) $(sort $(dir_y)) ; do \
 		[ ! -d $$i ] || make -C $$i romfs || exit $? ; \
 	done
 
+	# install busybox 1.2.1 (todo: get rid of stupid shell script)
+	cd budybox-1.2.1
+	./install_firmware.sh
+	cd ..
+
 clean:
 	-for i in $(dir_v) $(sort $(dir_y) $(dir_n) $(dir_)) ; do \
 		[ ! -d $$i ] || make -C $$i clean && rm $$i/*.gdb && rm $$i/*.elf; \
 	done
+
+	make -C busybox-1.2.1 clean
 	
 convert:
 	-for i in $(dir_v) $(sort $(dir_y) $(dir_n) $(dir_)) ; do \
 		[ ! -d $$i ] || make -C $$i convert; \
 	done
+
+	make -C busybox-1.2.1 convert
 
 prune:
 	-for i in $(sort $(dir_n) $(dir_)) ; do \

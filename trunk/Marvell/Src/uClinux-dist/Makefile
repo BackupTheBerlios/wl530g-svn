@@ -38,7 +38,7 @@ RELDIR = $(ROOTDIR)/release
 ROMFSDIR = $(ROOTDIR)/romfs
 ROMFSINST= romfs-inst.sh
 SCRIPTSDIR = $(ROOTDIR)/config/scripts
-TFTPDIR    = ../tftpboot
+TFTPDIR    = $(ROOTDIR)/tftpboot
 
 
 LINUX_CONFIG  = $(ROOTDIR)/$(LINUXDIR)/.config
@@ -65,7 +65,7 @@ MAKEARCH = $(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE)
 MAKEARCH_KERNEL = $(MAKEARCH)
 endif
 
-DIRS    = $(VENDOR_TOPDIRS) lib user
+DIRS    = $(VENDOR_TOPDIRS) lib user user.asus
 VENDDIR = $(ROOTDIR)/vendors/$(CONFIG_VENDOR)/$(CONFIG_PRODUCT)/.
 
 export VENDOR PRODUCT ROOTDIR LINUXDIR HOSTCC CONFIG_SHELL
@@ -155,6 +155,9 @@ menuconfig: config.in
 	@if egrep "^CONFIG_DEFAULTS_MODULES=y" .config > /dev/null; then \
 		$(MAKE) modules_menuconfig; \
 	 fi
+	@if egrep "^CONFIG_DEFAULTS_BUSYBOX_NEW=y" .config > /dev/null; then \
+		$(MAKE) -C user/busybox-1.2.1 menuconfig; \
+	 fi			
 	@if egrep "^CONFIG_DEFAULTS_VENDOR=y" .config > /dev/null; then \
 		$(MAKE) config_menuconfig; \
 	 fi
@@ -299,6 +302,7 @@ dep:
 # This one removes all executables from the tree and forces their relinking
 .PHONY: relink
 relink:
+	find user.asus -name '*.gdb' | sed 's/^\(.*\)\.gdb/\1 \1.gdb/' | xargs rm -f
 	find user -name '*.gdb' | sed 's/^\(.*\)\.gdb/\1 \1.gdb/' | xargs rm -f
 	find prop -name '*.gdb' | sed 's/^\(.*\)\.gdb/\1 \1.gdb/' | xargs rm -f
 	find $(VENDDIR) -name '*.gdb' | sed 's/^\(.*\)\.gdb/\1 \1.gdb/' | xargs rm -f
