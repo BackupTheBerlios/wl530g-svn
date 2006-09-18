@@ -976,21 +976,21 @@ static void
 make_etc(void)
 {
 	FILE *f;
-	char *name="root";
-	char *pass;
-	
+		
 	/* crypt using md5, no salt */
-	/*name = nvram_get("http_username") ? : "root";*/
-	pass = crypt(nvram_safe_get("http_passwd"), "$1$");
+	/*char *name;
+	char *pass;
+	name = nvram_get("http_username") ? : "root";
+	pass = crypt(nvram_safe_get("http_passwd"), "$1$");*/
 	
 	if ((f = fopen("/etc/passwd", "w"))) {
-		fprintf(f, "%s:%s:0:0:root:/usr/local/root:/bin/sh\n"
-			"nobody:x:99:99:nobody:/:/sbin/nologin\n", name, pass);
+		fprintf(f, "root:%s:0:0:root:/:/bin/sh\n"
+			"nobody:x:99:99:nobody:/:/sbin/nologin\n", nvram_safe_get("http_passwd"));
 		fclose(f);
 	}
 	
 	if ((f = fopen("/etc/group", "w"))) {
-		fprintf(f, "root:x:0:%s\nnobody:x:99:\n", name);
+		fprintf(f, "root:x:0:root\nnobody:x:99:\n");
 		fclose(f);
 	}
 		
