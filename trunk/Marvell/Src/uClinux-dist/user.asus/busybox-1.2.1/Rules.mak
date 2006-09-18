@@ -60,7 +60,7 @@ CFLAGS+=$(CHECKED_CFLAGS)
 ARFLAGS=cru
 
 # custom CFLAGS for FLT
-CFLAGS+=-Wl,-elf2flt="-s 16384" 
+CFLAGS+=-Wl,-elf2flt="-s 32678" 
 # gcc centric. Perhaps fiddle with findstring gcc,$(CC) for the rest
 # get the CC MAJOR/MINOR version
 CC_MAJOR:=$(shell printf "%02d" $(shell echo __GNUC__ | $(CC) -E -xc - | tail -n 1))
