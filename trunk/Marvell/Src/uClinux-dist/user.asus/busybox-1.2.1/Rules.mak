@@ -38,9 +38,7 @@ AR             = $(CROSS)ar
 AS             = $(CROSS)as
 LD             = $(CROSS)ld
 NM             = $(CROSS)nm
-#jmc: since we aren't generating an intermediate ELF
-#STRIP          = $(CROSS)strip
-STRIP          = echo
+STRIP          = $(CROSS)strip
 ELF2FLT        = $(CROSS)elf2flt
 CPP            = $(CC) -E
 SED           ?= sed
@@ -412,7 +410,8 @@ cmd_ar             = $(AR) $(ARFLAGS) $@ $^
 cmd_elf2flt        = $(ELF2FLT) $(ELF2FLTFLAGS) $< -o $@
 compile.c          = @$(disp_compile.c) ; $(cmd_compile.c)
 compile.h          = @$(disp_compile.h) ; $(cmd_compile.h)
-do_strip           = @$(disp_strip)     ; $(cmd_strip)
+do_strip           = 
+#@$(disp_strip)     ; $(cmd_strip)
 do_link            = @$(disp_link)      ; $(cmd_link)
 do_link.so         = @$(disp_link)      ; $(cmd_link.so)
 do_link.h          = @$(disp_link.h)    ; $(cmd_link.h)
