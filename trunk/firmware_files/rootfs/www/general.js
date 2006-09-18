@@ -830,7 +830,7 @@ function validate_ipaddr(o, v)
   
   if (v=='dhcp_start' || v=='dhcp_end' || v=='wan_ipaddr' || v=='dhcp1_start' || v=='dhcp1_end' || v=='lan_ipaddr' || v=='lan1_ipaddr')
   {
-  	if(v1==255||v2==255||v3==255||v4==255||v1==0||v4==0)
+  	if((v!='wan_ipaddr')&&(v1==255||v2==255||v3==255||v4==255||v1==0||v4==0))
   	{
   		alert(o.value + ' is not a valid IP address!');
         	o.value = "";
