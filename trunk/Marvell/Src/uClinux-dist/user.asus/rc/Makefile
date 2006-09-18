@@ -26,8 +26,8 @@ CFLAGS	+= -s -O2
 # -DSYSLOGD_TIMEZONE_SUPPORT
 
 INSTALLDIR = ../../../../../firmware_files/rootfs
-#LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared -L$(INSTALLDIR)/shared/usr/lib -lshared
-LDFLAGS = -Wl,-elf2flt="-s 64000" 
+#LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared -L$(INSTALLDIR)/shared/usr/lib -lshared 
+LDFLAGS = -lcrypt -Wl,-elf2flt="-s 64000" 
 
 # Add for ASUS modification
 CFLAGS 	+= -DASUS_EXT -DASUS -DASUS_EXTENSION -DWPA2 -DWDS -DNOMPPE -DRPPPPOE -DREMOVE_USB -DREMOVE_WEBCAM
@@ -35,7 +35,7 @@ OBJS := rc.o init.o interface.o network.o services.o udhcpc.o ppp.o http.o stats
 
 ifeq ($(CONFIG_NETCONF),y)
 OBJS += firewall.o
-LDFLAGS += -L$(TOP)/netconf -L$(INSTALLDIR)/netconf/usr/lib -lnetconf
+LDFLAGS += -L$(TOP)/netconf -L$(INSTALLDIR)/netconf/usr/lib -lnetconf 
 endif
 
 

@@ -960,8 +960,61 @@ sysinit(void)
 	/* Set a sane date */
 	stime(&tm);
 
+	/* Initialize /etc files */
+	make_etc();
+
 	dprintf("done\n");
 }
+ 
+/*
+ * create /etc/passwd and /etc/group files
+ *
+ * This bit of code originally borrowed from Oleg's WL-500g sources.
+ *
+ */
+static void 
+make_etc(void)
+{
+	FILE *f;
+	char *name="root";
+	char *pass;
+	
+	/* crypt using md5, no salt */
+	/*name = nvram_get("http_username") ? : "root";*/
+	pass = crypt(nvram_safe_get("http_passwd"), "$1$");
+	
+	if ((f = fopen("/etc/passwd", "w"))) {
+		fprintf(f, "%s:%s:0:0:root:/usr/local/root:/bin/sh\n"
+			"nobody:x:99:99:nobody:/:/sbin/nologin\n", name, pass);
+		fclose(f);
+	}
+	
+	if ((f = fopen("/etc/group", "w"))) {
+		fprintf(f, "root:x:0:%s\nnobody:x:99:\n", name);
+		fclose(f);
+	}
+		
+#ifdef UCLIBC_TZ	
+	/* uClibc TZ */
+	if ((f = fopen("/etc/TZ", "w"))) {
+		fprintf(f, "%s\n", nvram_safe_get("time_zone"));
+		fclose(f);
+	}
+#endif
+		
+#ifdef RESOLV_DYNAMIC_SYMLINK	
+	/* /etc/resolv.conf compatibility */
+	symlink("/tmp/resolv.conf", "/etc/resolv.conf");
+#endif
+	
+	/* hostname */
+	if ((f = fopen("/proc/sys/kernel/hostname", "w"))) {
+		fputs(nvram_safe_get("lan_hostname"), f);
+		fclose(f);
+	}
+
+}
+
 
 /* States */
 enum {

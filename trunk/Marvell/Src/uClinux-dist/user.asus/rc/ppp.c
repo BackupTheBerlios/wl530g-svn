@@ -90,6 +90,8 @@ ipup_main(int argc, char **argv)
 	logmessage(nvram_safe_get("wan_proto_t"), "connect to ISP");
 	wanmessage("");
 
+	eval("/etc/on_ppp_up.sh");
+
 	dprintf("done\n");
 	return 0;
 }
@@ -117,6 +119,8 @@ ipdown_main(int argc, char **argv)
 
 	logmessage(nvram_safe_get("wan_proto_t"), "Disconnected");
 	wanmessage(pppstatus(tmp));
+
+	eval("/etc/on_ppp_down.sh");
 
 	return 0;
 }
