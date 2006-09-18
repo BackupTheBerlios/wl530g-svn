@@ -18,7 +18,7 @@ bool 'init'				CONFIG_USER_INIT_INIT
 bool '  enable console shell'		CONFIG_USER_INIT_CONSOLE_SH
 bool '  execute firewall rules'		CONFIG_USER_INIT_RUN_FIREWALL
 choice 'Shell Program'	"Sash		CONFIG_USER_SASH_SH \
-			 minix-shell	CONFIG_USER_SH_SH \
+			 minix-shell	CONFIG_USER_SH_SH \Busy
 			 nwsh		CONFIG_USER_NWSH_SH \
 			 bash		CONFIG_USER_BASH_BASH \
 			 Other		CONFIG_USER_OTHER_SH \
@@ -639,9 +639,9 @@ endmenu
 #############################################################################
 
 mainmenu_option next_comment
-comment 'BusyBox'
+comment 'BusyBox 0.60 (old, depreciated)'
 
-bool 'BusyBox'			CONFIG_USER_BUSYBOX_BUSYBOX
+bool 'BusyBox (old, depreciated)'			CONFIG_USER_BUSYBOX_BUSYBOX
 
 if [ "$CONFIG_USER_BUSYBOX_BUSYBOX" = "y" ]; then
 	comment "Applets"
