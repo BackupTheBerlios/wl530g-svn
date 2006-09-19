@@ -233,7 +233,9 @@ handle_led(int sig)
 {
 	if (sig==SIGUSR1)
 	{
-		eval("erase", "/dev/mtd2");
+		/* jc: manually changed to new nvram partition.. why is it doing this though? */
+		/*  should at least use defines for the partitions.. */
+		eval("erase", "/dev/mtd3");
 		//printf("Send PID:%d to LED again\n", getpid());
 		set_pid(getpid());
 	}	

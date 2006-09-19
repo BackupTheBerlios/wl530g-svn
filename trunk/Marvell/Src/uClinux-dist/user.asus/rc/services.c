@@ -25,7 +25,26 @@
 #include <rc.h>
 
 /* Jeremy Collake */
-#define EXECUTE_INITD_RCS 1
+#define EXECUTE_INITD_RCS 
+#define EXECUTE_PREINIT 
+
+#ifdef EXECUTE_PREINIT
+int 
+start_preinit(void)
+{
+	dprintf("launching /etc/preinit\n");
+	eval("sh","/etc/preinit");
+	dprintf("done\n");
+	return 0;
+}
+
+int 
+stop_preinit(void)
+{
+	return 0;
+}
+#endif
+
 #ifdef EXECUTE_INITD_RCS
 int 
 start_initd_rcs(void)
@@ -309,6 +328,10 @@ stop_ntpc(void)
 int
 start_services(void)
 {
+#ifdef EXECUTE_PREINIT
+	start_preinit();
+#endif
+
 	start_httpd();
 	start_dns();
 	start_dhcpd();
@@ -333,6 +356,10 @@ start_services(void)
 int
 stop_services(void)
 {
+#ifdef EXECUTE_PREINIT
+	stop_preinit();
+#endif
+
 #ifdef ASUS_EXT
 	stop_inetd();
 	//stop_misc();

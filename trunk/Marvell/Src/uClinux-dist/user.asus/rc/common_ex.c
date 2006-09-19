@@ -78,6 +78,16 @@ char *mac_conv(char *mac_name, int idx, char *buf)
 
 void getsyspara(void)
 {
+	nvram_set("productid", "WL530g");
+	nvram_set("firmver", "1.9.4.6");
+	return;
+
+/* jc: when I enabled PROTECTION on the mtd mapping partitions, it made
+	   mtd0 not the entire flash (just kernel instead). This caused the below
+  	   code to fail. Since many other changes will happen with mtd0, let's
+	   do something insane for now and hard-code a version and product id. We'll
+	   fix this later... TODO
+	
 	FILE *fp;
 	char buf[1];
 	unsigned long *imagelen;
@@ -85,11 +95,11 @@ void getsyspara(void)
 	char verPtr[64];
 	char productid[13];
 	char fwver[12];
-	int i;
+	int i;	
 
+		
 	strcpy(productid, "WLHDD");
-	strcpy(fwver, "0.1.0.1");
-
+	strcpy(fwver, "0.1.0.1");	
 	if ((fp = fopen("/dev/mtd0", "rb"))!=NULL)
 	{
 		if (fseek(fp, 4, SEEK_SET)!=0) goto write_ver;
@@ -109,11 +119,10 @@ void getsyspara(void)
 		fclose(fp);
 	}
 
-write_ver:
+write_ver:	
 	nvram_set("productid", productid);
 	nvram_set("firmver", fwver);
-
-	
+		
 	if (strstr(productid, "WL530"))
 	{
 		// only WL530 have auto mode
@@ -123,7 +132,7 @@ write_ver:
 		// ugly solution
 		if (nvram_match("wan_mode_x", "2"))
 			nvram_set("wan_mode_x", "1");
-	}
+	}*/
 }
 
 void wan_netmask_check()
