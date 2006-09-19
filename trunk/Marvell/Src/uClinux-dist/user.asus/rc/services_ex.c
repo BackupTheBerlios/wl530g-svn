@@ -1139,9 +1139,9 @@ start_inetd(void)
 	{
 		//if (nvram_match("telnet_enabled", "1"))
 		{
-			fprintf(fp, "telnet stream tcp nowait root /bin/telnetd\n");
+			fprintf(fp, "telnet stream tcp nowait root /sbin/telnetd\n");
 		}
-		fprintf(fp, "mvmfg   dgram  udp wait   root /bin/mvmfgd\n");
+		fprintf(fp, "mvmfg   dgram  udp wait   root /sbin/mvmfgd\n");
 		fclose(fp);
 	}
 	
