@@ -405,6 +405,10 @@ int nfsmount(const char *spec, const char *node, int *flags,
 	data.acregmax	= 60;
 	data.acdirmin	= 30;
 	data.acdirmax	= 60;
+/* jmc: default rsize and wsize to 8KB - could be done in kernel instead */
+	data.rsize		= 8*1024;
+	data.wsize		= 8*1024;
+/* end jmc */
 #if NFS_MOUNT_VERSION >= 2
 	data.namlen	= NAME_MAX;
 #endif
