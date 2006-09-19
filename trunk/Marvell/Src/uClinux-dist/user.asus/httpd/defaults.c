@@ -35,6 +35,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "os_server", "", 0 },			/* URL for getting upgrades */
 	{ "stats_server", "", 0 },		/* URL for posting stats */
 	{ "console_loglevel", "1", 0 },		/* Kernel panics only */
+	{ "max_conntrack", "1008", 0 },	/* default conntrack table size */
 
 	/* TCP/IP parameters */
 	{ "lan_proto", "dhcp", 0 },		/* [static|dhcp] */

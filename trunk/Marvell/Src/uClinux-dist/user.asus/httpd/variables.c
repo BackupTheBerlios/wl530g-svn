@@ -1510,7 +1510,9 @@
                     
       {"DmzDHCPLog", "Status", NULL, ARGV("dleases.log",""), FALSE, FALSE},
                  
-                 {"upnp_enable", "", validate_range, ARGV("0","1"), FALSE, FALSE},                                                       
+                 {"upnp_enable", "", validate_range, ARGV("0","1"), FALSE, FALSE},       
+
+		{"max_conntrack", "", validate_range, ARGV("512","4096"), FALSE, FALSE},                                                                
               
                 {"log_ipaddr", "", validate_ipaddr, NULL, FALSE, FALSE},
             	
@@ -1605,6 +1607,7 @@
                  {"", "", validate_range, ARGV("0","1"), FALSE, FALSE},                                                       
               
                 {"", "", validate_ipaddr, NULL, FALSE, FALSE},
+	
                              
                  {"ddns_enable_x", "", validate_range, ARGV("0","1"), FALSE, FALSE},                                                       
               	
