@@ -29,9 +29,9 @@ static int	log_shmid = -1;	// ipc shared memory id
 static int	log_semid = -1;	// ipc semaphore id
 
 /*
- * cleanup_sema - release semaphore if acquired
+ * cleanup_resources
  */
-static void cleanup_sema() 
+static void cleanup_resources() 
 {
 	//release all acquired resources
 	if (log_shmid != -1)
@@ -71,14 +71,14 @@ int busybox_logread(char *pszOutputFile)
 	// Attach shared memory to our char*
 	if ( (buf = shmat(log_shmid, NULL, SHM_RDONLY)) == NULL)
 	{
-		cleanup_sema();		
+		cleanup_resources();		
 		fclose(fOut);
 		return 1;
 	}
 
 	if ( (log_semid = semget(KEY_ID, 0, 0)) == -1)
 	{
-		cleanup_sema();		
+		cleanup_resources();		
 		fclose(fOut);
 		return 1;
 	}
