@@ -1070,8 +1070,10 @@ ej_dump(int eid, webs_t wp, int argc, char_t **argv)
 			   
 	if (strcmp(file, "syslog.log")==0)
 	{
+		eval("logread", "> /tmp/syslog.log");
            	sprintf(filename, "/tmp/%s-1", file);
 	   	ret+=dump_file(wp, filename); 
+		eval("rm", "/tmp/syslog.log");
 	}
 	   			   
 	sprintf(filename, "/tmp/%s", file);
@@ -1292,8 +1294,9 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
     if (!strcmp(value," Clear "))
     {   
 	// current only syslog implement this button
-	unlink("/tmp/syslog.log-1");
-	unlink("/tmp/syslog.log");	
+	/*unlink("/tmp/syslog.log-1");
+	unlink("/tmp/syslog.log");	*/
+	/* jmc - todo - implement clear by killing and restarting syslogd - must expose syslogd init now in rc */
     	websRedirect(wp, current_url);
         return 0;	
     }
