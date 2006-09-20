@@ -16,7 +16,7 @@ HowTo compile your own packages and/or kernel:
 
 1.) Download and install toolchains built specifically for this firmware:
     http://sukkamehulinko.romikselle.com/wl530g/arm-elf-tools-20060917.tar.gz   
-    	tar -xzvf ./arm-elf-tools-20060917.tar.gz
+    	tar -xzvf arm-elf-tools-20060917.tar.gz
     If this fails, use dd to extract the tar.gz to / (root).
 2.) Go to Marvell/Src/uClinux-dist.
 3.) Run 'make menuconfig' to configure the kernel and user packages to build.

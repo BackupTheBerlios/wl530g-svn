@@ -2,12 +2,23 @@
 #
 # This script builds a new firmware image.
 #
+rmsvn()
+{
+for i in $(find $1 | grep .svn); do
+	rm -rf $i
+done
+}
+
 current_date=$(date +%m%d%y)
 OUTPUT_FILE=wl530g_db90h_"$current_date"_en.bin
 echo " Final output image will be $OUTPUT_FILE"
 echo " Log for $OUTPUT_FILE" > build.log
 echo " Exporting filesystem ..."
-svn export firmware_files/ build_temp/
+rm -rf build_temp
+#svn export firmware_files/ build_temp/
+mkdir build_temp
+cp -r firmware_files/* build_temp
+rmsvn build_temp/
 echo " Extracting devfs ..."
 cd build_temp
 tar -xzvf dev.tar.gz -C rootfs/ 2>&1 >> ../build.log
@@ -28,4 +39,4 @@ cd firmware_images
 ln -s $OUTPUT_FILE latest_db90h_firmware_image.bin
 cd ..
 rm -rf firmware_images/temp
-rm -rf build_temp
+#rm -rf build_temp

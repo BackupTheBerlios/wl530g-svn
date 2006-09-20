@@ -1,4 +1,33 @@
 
+09/19/06 (3)
+  * important fix: new syslogd didn't have max log size set correctly. This would cause all available RAM to eventually be eaten up by syslog.log. This fix adds proper circular buffer support. Read the log with 'logread'. Web UI needs updating as well, I'll do that shortly.
+
+
+09/19/06 (2)
+
+  * fixed lame msh error in /etc/init.d/S10conntrack.
+  * fixed telnetd and mvmfgd path in inetd.conf.
+
+09/19/06
+
+  * added 'max_conntrack' nvram variable to set maximum number of connections (default value is 1008).
+  * added web UI setting for maximum connections in 'IP settings/Misc'.
+  * changed network parameters to common p2p friendly values (same that will be used in OpenWrt WR RC6). See /etc/sysctl.conf.
+  * create /etc/groups and /etc/passwd from within rc instead of /etc/init.d/S10login (deleted).
+  * add /jffs/etc/on_ppp_up and /jffs/etc/on_ppp_down for invocation when a PPP connection is established and closed, respectively.
+  * set /proc/sys/kernel/hostname appropriately at startup.
+  * set initial ramfs size to 1.5MB (was 2MB).
+  * added /rom folder.
+  * unlinked /mnt from /tmp.
+  * busybox: mount (NFS) - set default rsize and wsize to 8KB each - was 32KB each.
+  * busybox: added ftpput and ftpget.
+  * busybox.find: add -xdev and -type options.
+  * busybox.grep: add regex (egrep) and context switches.
+  * added stand-alone cat, echo, rmdir, rm, yes, true, false, date, uname, whoami, pwd, and basename. Removed these utilities from busybox. This results in less RAM usage since an entire instance of busybox need not be created when these simple applets are run.
+  * changed firmware upgrade failure message in web UI to suggest rescue mode and list free RAM as a possible cause.
+  * clipped out some useless code in general.js.
+  * many other misc. changes and additions.
+
 09/17/06
 
   * addition: busybox 1.2.1 is here with all the beloved gifts it has to offer! Almost all existing applets enhanced in some way or another (i.e. tab file/dirname completion), and many new applets are available (i.e. netstat).
