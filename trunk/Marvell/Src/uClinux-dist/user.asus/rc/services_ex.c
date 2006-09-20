@@ -400,6 +400,9 @@ int
 start_logger(void)
 {		
 	pid_t pid;
+	/* must be careful not to use the same buffer when we're using multiple calls in an arugment */
+	char szTemp[16];
+	char szTemp2[16];
 	
 	if (nvram_match("router_disable", "1"))
 		return 0;
@@ -407,9 +410,18 @@ start_logger(void)
 	if (nvram_invmatch("log_ipaddr", ""))
 	{
 #ifdef SYSLOGD_TIMEZONE_SUPPORT
-		char *syslogd_argv[] = {"syslogd", "-m", "0", "-t", nvram_safe_get("time_zone_x"), "-O", "/tmp/syslog.log", "-R", nvram_safe_get("log_ipaddr"), "-L", NULL};
+		char *syslogd_argv[] = {"syslogd", \
+				"-C", nvram_safe_get_with_default("syslogd_logsize_kb", "32", szTemp, sizeof(szTemp)),  \
+				"-m", nvram_safe_get_with_default("syslogd_mark_min", "20", szTemp2, sizeof(szTemp2)), \
+				"-t", nvram_safe_get("time_zone_x"), \
+				"-O", "/tmp/syslog.log", \
+				"-R", nvram_safe_get("log_ipaddr"), "-L", NULL};
 #else
-		char *syslogd_argv[] = {"syslogd", "-m", "0", "-O", "/tmp/syslog.log", "-R", nvram_safe_get("log_ipaddr"), "-L", NULL};
+		char *syslogd_argv[] = {"syslogd", \
+				"-C", nvram_safe_get_with_default("syslogd_logsize_kb", "32", szTemp, sizeof(szTemp)),  \
+				"-m", nvram_safe_get_with_default("syslogd_mark_min", "20", szTemp2, sizeof(szTemp2)), \
+				"-O", "/tmp/syslog.log", \
+				"-R", nvram_safe_get("log_ipaddr"), "-L", NULL};
 #endif
 		char *klogd_argv[] = {"klogd", NULL, NULL};
 
@@ -422,9 +434,16 @@ start_logger(void)
 	else
 	{
 #ifdef SYSLOGD_TIMEZONE_SUPPORT
-		char *syslogd_argv[] = {"syslogd", "-m", "0", "-t", nvram_safe_get("time_zone_x"), "-O", "/tmp/syslog.log", NULL};
+		char *syslogd_argv[] = {"syslogd", \
+			"-C", nvram_safe_get_with_default("syslogd_logsize_kb", "32", szTemp, sizeof(szTemp)),  \
+			"-m", nvram_safe_get_with_default("syslogd_mark_min", "20", szTemp2, sizeof(szTemp2)), \
+			"-t", nvram_safe_get("time_zone_x"), \
+			"-O", "/tmp/syslog.log", NULL};
 #else
-		char *syslogd_argv[] = {"syslogd", "-m", "0", "-O", "/tmp/syslog.log",NULL};
+		char *syslogd_argv[] = {"syslogd", \
+			"-C", nvram_safe_get_with_default("syslogd_logsize_kb", "32", szTemp, sizeof(szTemp)), \
+			"-m", nvram_safe_get_with_default("syslogd_mark_min", "20", szTemp2, sizeof(szTemp2)), \
+			"-O", "/tmp/syslog.log",NULL};
 #endif
 		char *klogd_argv[] = {"klogd", NULL, NULL};
 

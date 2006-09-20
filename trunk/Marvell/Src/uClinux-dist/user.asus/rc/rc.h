@@ -22,6 +22,8 @@
 
 #define sin_addr(s) (((struct sockaddr_in *)(s))->sin_addr)
 
+extern char * nvram_safe_get_with_default(char *pszVariable, char *pszDefault, char *pszBuffer, unsigned int nBufferLen);
+
 /* udhcpc scripts */
 extern int udhcpc_main(int argc, char **argv);
 
