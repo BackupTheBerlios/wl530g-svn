@@ -43,6 +43,7 @@
 #include "bcmutils.h"
 #include "bcmnvram_f.h"
 #include "common.h"
+#include "logread.h" /* for syslogd circular buffer */
 
 #define sys_restart() kill(1, SIGHUP)
 #define sys_reboot() kill(1, SIGTERM)
@@ -1070,10 +1071,15 @@ ej_dump(int eid, webs_t wp, int argc, char_t **argv)
 			   
 	if (strcmp(file, "syslog.log")==0)
 	{
-		eval("logread", "> /tmp/syslog.log");
-           	sprintf(filename, "/tmp/%s-1", file);
-	   	ret+=dump_file(wp, filename); 
-		eval("rm", "/tmp/syslog.log");
+		/* todo: we need to create a unique tmp filename instead of this crap */
+		char szFilename[64];	
+		sprintf(szFilename,"/tmp/.syslog-%u",clock());
+		cprintf("logread tempf=%s\n", szFilename);
+		if(busybox_logread(szFilename)==0)
+		{
+           	   	ret+=dump_file(wp, filename); 
+		}
+		eval("rm", szFilename);
 	}
 	   			   
 	sprintf(filename, "/tmp/%s", file);
@@ -2904,3 +2910,5 @@ kill_pidfile_s(char *pidfile, int sig)
   	} else
 		return errno;
 }
+
+

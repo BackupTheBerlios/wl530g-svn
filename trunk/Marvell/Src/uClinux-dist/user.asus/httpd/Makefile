@@ -22,5 +22,5 @@ clean:
 install: all
 	install -D httpd $(INSTALLDIR)/sbin/httpd
 
-httpd: httpd.o ej.o cgi.o web_ex.o ../shared/shutils.o common.o nvram_f.o nvmap.o utility.o ../shared/nvram_linux.o ../netconf/netconf_linux.o
+httpd: httpd.o ej.o cgi.o web_ex.o ../shared/shutils.o common.o nvram_f.o nvmap.o utility.o ../shared/nvram_linux.o ../netconf/netconf_linux.o logread.o
 	$(CC) $(CFLAGS) -o $@ $^  $(LDFLAGS) ../iptables/libiptc/libiptc.a
