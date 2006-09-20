@@ -17,7 +17,7 @@ deps_config := \
 	coreutils/Config.in \
 	archival/Config.in \
 	libbb/Config.in \
-	/home/db90h/llf/trunk/Marvell/Src/uClinux-dist/user/busybox-1.2.1/Config.in
+	/home/db90h/llf/trunk/Marvell/Src/uClinux-dist/user.asus/busybox-1.2.1/Config.in
 
 .config include/config.h: $(deps_config)
 
