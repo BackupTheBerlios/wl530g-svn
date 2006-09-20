@@ -6,6 +6,10 @@ OBJS = cat.o chgrp.o chmod.o chown.o cmp.o cp.o dd.o grep.o l.o ln.o ls.o \
 
 all: $(EXECS)
 
+CC:=arm-elf-gcc
+LDFLAGS:=-O2 -Os -Wl,-elf2flt="-s 4096"
+
+
 $(EXECS): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $@.o $(LDLIBS)
 
