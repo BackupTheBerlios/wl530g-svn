@@ -140,7 +140,7 @@ static int addgroup(const char *filename, char *group, gid_t gid)
  * ________________________________________________________________________ */
 int addgroup_main(int argc, char **argv)
 {
-	char opt;
+	int opt;
 	char *group;
 	gid_t gid = 0;
 
@@ -149,7 +149,7 @@ int addgroup_main(int argc, char **argv)
 		return 1;
 	}
 
-	while ((opt = getopt(argc, argv, "g:")) != EOF) {
+	while ((opt = getopt(argc, argv, "g:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gid = strtol(optarg, NULL, 10);
@@ -175,4 +175,4 @@ int addgroup_main(int argc, char **argv)
 	return addgroup(GROUP_FILE, group, gid);
 }
 
-/* $Id: addgroup.c,v 1.5 2001/08/20 07:47:31 philipc Exp $ */
+/* $Id: addgroup.c,v 1.6 2004/05/27 13:47:29 gerg Exp $ */

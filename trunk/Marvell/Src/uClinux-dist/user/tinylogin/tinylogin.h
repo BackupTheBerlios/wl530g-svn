@@ -41,10 +41,10 @@
 #define TRUE    ((int) 0)
 #define FAIL_DELAY 3
 #define TIMEOUT 60
-#define NOLOGIN_FILE	    "/tmp/nologin"
+#define NOLOGIN_FILE	    "/etc/nologin"
 #ifndef CONFIG_USER_FLATFSD_FLATFSD
-#define PASSWD_FILE	    "/tmp/passwd"
-#define GROUP_FILE	    "/tmp/group"
+#define PASSWD_FILE	    "/etc/passwd"
+#define GROUP_FILE	    "/etc/group"
 #else
 #define PASSWD_FILE	    "/etc/config/passwd"
 #define GROUP_FILE	    "/etc/config/group"

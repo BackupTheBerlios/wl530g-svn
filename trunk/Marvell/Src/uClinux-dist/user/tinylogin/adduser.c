@@ -264,7 +264,7 @@ static uid_t i_am_not_root()
 int adduser_main(int argc, char **argv)
 {
 	int i;
-	char opt;
+	int opt;
 	char *login;
 	char *gecos;
 	char *home = NULL;
@@ -281,12 +281,12 @@ int adduser_main(int argc, char **argv)
 	shell = default_shell;
 
 	/* get args */
-	while((opt = getopt(argc, argv, "h:c:s:")) != EOF){
+	while((opt = getopt(argc, argv, "h:g:s:")) != -1){
 		switch (opt){
 		case 'h':
 			home = optarg;
 			break;
-		case 'c':
+		case 'g':
 			gecos = optarg;
 			break;
 		case 's':
@@ -336,4 +336,4 @@ int adduser_main(int argc, char **argv)
 	return (i);
 }
 
-/* $Id: adduser.c,v 1.7 2001/08/22 04:05:51 philipc Exp $ */
+/* $Id: adduser.c,v 1.8 2004/05/27 13:47:29 gerg Exp $ */

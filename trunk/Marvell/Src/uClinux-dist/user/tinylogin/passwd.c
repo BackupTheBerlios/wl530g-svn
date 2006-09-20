@@ -196,18 +196,17 @@ extern int update_passwd(const struct passwd *pw, char *crypt_pw)
 	lock.l_start = 0;
 	lock.l_len = 0;
 	if (fcntl(fileno(fp), F_SETLK, &lock) < 0) {
-/*		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
-		return 1; */
+		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+		return 1;
 	}
 	lock.l_type = F_UNLCK;
 
-/*	snprintf(buf, sizeof buf, "%s-", filename);
+	snprintf(buf, sizeof buf, "%s-", filename);
 	if (create_backup(buf, fp)) {
 		fcntl(fileno(fp), F_SETLK, &lock);
 		fclose(fp);
-		return 1; 
+		return 1;
 	}
-*/
 	snprintf(buf, sizeof buf, "%s+", filename);
 	mask = umask(0777);
 	out_fp = fopen(buf, "w");

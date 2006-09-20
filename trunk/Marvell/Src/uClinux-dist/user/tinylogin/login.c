@@ -370,8 +370,8 @@ static void login_prompt(const char *prompt, char *name, int namesize)
 
 	sigquit = signal(SIGQUIT, _exit);
 	if (prompt) {
-		//gethostname(buf, sizeof buf);
-		printf(prompt, "[WL530G]");
+		gethostname(buf, sizeof buf);
+		printf(prompt, buf);
 		fflush(stdout);
 	}
 	bzero(buf, sizeof buf);
@@ -425,26 +425,27 @@ static int pw_auth(const char *cipher, const char *user)
 		c[0] = '\0';
 		clear = c;
 	}
-	retval = strcmp(/*pw_encrypt(clear, cipher)*/clear, cipher);
+	retval = strcmp(pw_encrypt(clear, cipher), cipher);
 	bzero(clear, strlen(clear));
 	return retval;
 }
 
 static int set_uid_gid()
 {
-/*
 	if (tlg_initgroups(pwent.pw_name, pwent.pw_gid) == -1) {
 		perror("initgroups");
 		syslog(LOG_ERR, "initgroups failed for user `%s': %m\n",
 			   pwent.pw_name);
 		closelog();
+		/* return -1; */
 		return 1;
 	}
 	if (setgid(pwent.pw_gid) == -1) {
 		perror("setgid");
 		syslog(LOG_ERR, "bad group ID `%d' for user `%s': %m\n",
 			   pwent.pw_gid, pwent.pw_name);
-		closelog();		
+		closelog();
+		/* return -1; */
 		return 1;
 	}
 	if (setuid(pwent.pw_uid)) {
@@ -452,9 +453,9 @@ static int set_uid_gid()
 		syslog(LOG_ERR, "bad user ID `%d' for user `%s': %m\n",
 			   pwent.pw_uid, pwent.pw_name);
 		closelog();
+		/* return -1; */
 		return 1;
 	}
-*/
 	return 0;
 }
 
