@@ -6,8 +6,11 @@ OBJS = basename.o date.o dirname.o echo.o false.o logname.o printenv.o \
 
 all: $(EXECS)
 
+CC:=arm-elf-gcc
+LDFLAGS:=-Os -Wl,-elf2flt="-s 4096"
+
 $(EXECS): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $@.o $(LDLIBS)
+	$(CC) $(LDFLAGS) -o $@ $@.o
 
 romfs:
 	$(ROMFSINST) -e CONFIG_USER_SHUTILS_BASENAME /bin/basename
