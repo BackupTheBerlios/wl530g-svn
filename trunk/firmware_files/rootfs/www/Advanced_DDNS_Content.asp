@@ -24,6 +24,12 @@
 <td class="content_header_td" onMouseOver="return overlib('If you enable UPnP, your WL530g will be found automatically by systems, such as Windows XP. And it allows these systems to automatically configure WL530g for various Internet applications, such as gaming and videoconferencing.', LEFT);" onMouseOut="return nd();">Enable UPnP?
            </td><td class="content_input_td"><input type="radio" value="1" name="upnp_enable" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'upnp_enable', '1')" <% nvram_match_x("LANHostConfig","upnp_enable", "1", "checked"); %>>Yes</input><input type="radio" value="0" name="upnp_enable" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'upnp_enable', '0')" <% nvram_match_x("LANHostConfig","upnp_enable", "0", "checked"); %>>No</input></td>
 </tr>
+
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('This allows you to set the maximum number of concurrent connections your router can track. Keep in mind that more connections will require more RAM.', LEFT);" onMouseOut="return nd();">Maximum Connections:
+           </td><td class="content_input_td"><input type="text" maxlength="4" class="content_input_fd" size="15" name="max_conntrack" value="<% nvram_get_x("LANHostConfig", "max_conntrack"); %>" onBlur="return validate_string(this)" onKeyPress="return is_string(this)"></td>
+</tr>
+
 <tr>
 <td class="content_header_td" onMouseOver="return overlib('This feature allows you to assign a remote server to record log messages of WL530g. If you leave it blank, system will record up to 1024 mesages on WL530g only.', LEFT);" onMouseOut="return nd();">Remote Log Server:
            </td><td class="content_input_td"><input type="text" maxlength="15" class="content_input_fd" size="15" name="log_ipaddr" value="<% nvram_get_x("LANHostConfig","log_ipaddr"); %>" onBlur="return validate_ipaddr(this, 'log_ipaddr')" onKeyPress="return is_ipaddr(this)" onKeyUp="change_ipaddr(this)"></td>

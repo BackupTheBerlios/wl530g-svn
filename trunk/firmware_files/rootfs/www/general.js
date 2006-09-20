@@ -3477,70 +3477,7 @@ function openLink(s)
     	   	    
    	link = window.open(tourl, "NTPLink",
                "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=480");    
-    }    
-    else if (s=='x_WImageSize')
-    {
-    	tourl = "Advanced_ShowTime_Widzard.asp"
-    	link = window.open(tourl, "WebCamera", 
-                "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=560");
-    }
-    else if (s=='x_WImageStatic')
-    {    	   
-    	tourl = "ShowWebCamPic.asp"
-    	link = window.open(tourl, "WebCamera", 
-                "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=560");
-    }
-    else if (s=='x_WRemote')
-    {
-    	tourl = "Advanced_RemoteControl_Widzard.asp"
-    	
-    	link = window.open(tourl, "RemoteMonitor",
-                "toolbar=no,location=no,directories=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,top=0,left=0,width=" + screen.width + ",height=" + screen.height);
-    }
-    else if (s=='x_FIsAnonymous' || s=='x_FIsSuperuser')
-    {
-    	urlstr = location.href;	
-      	url = urlstr.indexOf("http://");
-      	
-      	//user = '<% nvram_x("General", "x_Username"); %>';
-      	//LANIP= '<% nvram_x("lan.log", "LANIPAddress"); %>';      	      
-      	port = document.form.usb_ftpport_x.value;
-      	
-      	if (url == -1) urlpref = LANIP;
-      	else
-      	{        
-         	urlstr = urlstr.substring(7, urlstr.length);
-         	url = urlstr.indexOf(":");
-               
-         	if (url!=-1)
-         	{
-	         	urlpref = urlstr.substring(0, url);
-         	}
-         	else
-         	{
-	         	url = urlstr.indexOf("/");
-	        	if (url!=-1) urlpref = urlstr.substring(0, url);
-	        	else urlpref = urlstr;
-         	}
-      	}   
-      	if (s=='x_FIsAnonymous')
-      	{
-      	   user = 'anonymous';
-      	   tourl = "ftp://" + urlpref;
-   
-      	}   
-      	else
-      	{
-      	   user = 'admin';
-      	   tourl = "ftp://" + user + "@" + urlpref;
-      	}   
-      	
-      	if (port!=21) tourl = tourl + ":" + port;
-      	
-    	link = window.open(tourl, "FTPServer", 
-                "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=560");
-    }
-       
+    }              
     if (!link.opener) link.opener = self;
 }
 
@@ -3747,45 +3684,6 @@ function is_wlphrase(s, v, o)
     }              
     return true;
 }
-
-/*
-function wl_channel_list_change(countr)
-{
-	var phytype = document.forms.wl_phytype[document.forms[0].wl_phytype.selectedIndex].value;
-	var country = document.forms.wl_country_code[document.forms[0].wl_country_code.selectedIndex].value;
-	var channels = new Array(0);
-	var cur = 0;
-	var sel = 0;
-
-
-	for (i = 0; i < document.forms[0].wl_channel.length; i++) {
-		if (document.forms[0].wl_channel[i].selected) {
-			cur = document.forms[0].wl_channel[i].value;
-			break;
-		}
-	}
-	
-        <% wl_channel_list("b"); %>
-
-
-	document.forms[0].wl_channel.length = channels.length;
-	for (var i in channels) {
-		if (channels[i] == 0)
-			document.forms[0].wl_channel[i] = new Option("Auto", channels[i]);
-		else
-			document.forms[0].wl_channel[i] = new Option(channels[i], channels[i]);
-		document.forms[0].wl_channel[i].value = channels[i];
-		if (channels[i] == cur) {
-			document.forms[0].wl_channel[i].selected = true;
-			sel = 1;
-		}
-	}
-
-	if (sel == 0)
-		document.forms[0].wl_channel[0].selected = true;
-}
-*/
-
 
 function wl_wep_change()
 {

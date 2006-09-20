@@ -35,7 +35,7 @@ function redirect1() {
           <td bgcolor="#FF0000" height="50" width="652"><b><font size="5" face="Arial" color="#FFFFFF">Setting File Upload Fail !</font></b></td>
         </tr>
         <tr> 
-          <td width="652" height="25" bgcolor="#FFFFFF" colspan="2"><font face="Arial">Setting File upload fail. It may result from incorrect Setting File or error transmission. Please check the validation of Setting File and try again.</font></td>
+          <td width="652" height="25" bgcolor="#FFFFFF" colspan="2"><font face="Arial">I'm sorry, file upload failed. If you are upgrading the firmware, consider using RESCUE MODE instead by holding down the reset button while powering in the router. Then utilize the Firmware Restoration utility for the WL-530g (on your CD or downloadable at http://www.asus.com).</td><tr><td>Possible causes for this problem are an invalid file, too little free RAM, or a network error.</font></td>
         </tr>
         <tr> 
           <td width="652" height="25" bgcolor="#FFFFFF" colspan="2"></td>
