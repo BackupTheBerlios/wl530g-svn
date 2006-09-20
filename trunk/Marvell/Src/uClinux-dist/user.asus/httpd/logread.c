@@ -72,14 +72,14 @@ int busybox_logread(char *pszOutputFile)
 	if ( (buf = shmat(log_shmid, NULL, SHM_RDONLY)) == NULL)
 	{
 		cleanup_sema();		
-		fClose(fOUt);
+		fclose(fOut);
 		return 1;
 	}
 
 	if ( (log_semid = semget(KEY_ID, 0, 0)) == -1)
 	{
 		cleanup_sema();		
-		fClose(fOut);
+		fclose(fOut);
 		return 1;
 	}
 
