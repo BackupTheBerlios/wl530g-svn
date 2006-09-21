@@ -1,3 +1,16 @@
+09/20/06
+  * added new logread code to httpd for reading the syslogd circular buffer (a.k.a. log viewing now works in web UI).
+  * added /etc/init.d/S20syslogd to start/stop syslogd. 
+  * rc now uses /etc/init.d/S20syslogd to start syslogd.
+  * httpd now clears syslogd circular buffer through syslogd start/restart.
+  * added symlink from /www/tmp to /tmp/www for adding your own temporary web pages.
+  * added symlink from /www/jffs to /jffs/www for adding yur own persistant web pages.
+  * new syslogd variables are: syslogd_logsize_kb to set circular buffer size and syslogd_mark_min to set mark interval time (set to 0 to disable).
+  * reduced default circular buffer size to 16KB (syslogd_logsize_kb).
+  * changed default syslogd mark time to 0/disabled (syslogd_mark_min).
+  * removed 'cpu' utility from base firmware image to an installable package.
+  * fixed default incorrectly handled in /etc/init.d/S10conntrack. This would cause web UI to not show default value if max_conntrack unset.
+  * increased JFFS2 size by 128KB (it will therefore be erased during an upgrade from any previous build).
 
 09/19/06 (3)
   * important fix: new syslogd didn't have max log size set correctly. This would cause all available RAM to eventually be eaten up by syslog.log. This fix adds proper circular buffer support. Read the log with 'logread'. Web UI needs updating as well, I'll do that shortly.
