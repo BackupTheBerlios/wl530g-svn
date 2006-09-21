@@ -1015,12 +1015,13 @@ static int dump_file(webs_t wp, char *filename)
 	char buf[MAX_LINE_SIZE];
 	int ret;
 
-	//printf("dump: %s\n", filename);
+	cprintf("dump: %s\n", filename);
 	
 	fp = fopen(filename, "r");
 		
 	if (fp==NULL) 
 	{
+		cprintf("Error reading\n");
 		ret+=websWrite(wp, "");
 		return(ret);
 	}
@@ -1029,7 +1030,7 @@ static int dump_file(webs_t wp, char *filename)
 		
 	while (fgets(buf, MAX_LINE_SIZE, fp)!=NULL)
 	{	 	
-	    //printf("Read time: %s\n", buf);	    	    	    	   
+	    cprintf("Read time: %s\n", buf);	    	    	    	   
 	    ret += websWrite(wp, buf);
 	}		    	                             		
 	 
@@ -1077,7 +1078,7 @@ ej_dump(int eid, webs_t wp, int argc, char_t **argv)
 		cprintf("logread tempf=%s\n", szFilename);
 		if(busybox_logread(szFilename)==0)
 		{
-           	   	ret+=dump_file(wp, filename); 
+           	   	ret+=dump_file(wp, szFilename); 
 		}
 		eval("rm", szFilename);
 	}
@@ -1298,11 +1299,11 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
         return 0;	
     }
     if (!strcmp(value," Clear "))
-    {   
-	// current only syslog implement this button
+    {   	
 	/*unlink("/tmp/syslog.log-1");
 	unlink("/tmp/syslog.log");	*/
-	/* jmc - todo - implement clear by killing and restarting syslogd - must expose syslogd init now in rc */
+	eval("/bin/sh", "/etc/init.d/S20syslogd", "stop");
+	eval("/bin/sh", "/etc/init.d/S20syslogd", "start");	
     	websRedirect(wp, current_url);
         return 0;	
     }
