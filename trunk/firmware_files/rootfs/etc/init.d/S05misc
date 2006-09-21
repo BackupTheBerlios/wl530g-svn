@@ -1,0 +1,7 @@
+#!/bin/sh
+# make folder for /www/tmp -> /tmp/www
+mkdir /tmp/www
+# make folder for /www/jffs -> /jffs/www
+if [ ! -d "/jffs/www" ]; then
+	mkdir "/jffs/www"
+fi
