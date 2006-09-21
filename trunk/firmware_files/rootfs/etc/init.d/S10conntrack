@@ -2,11 +2,13 @@
 # set max conntrack
 echo "$0: started"
 max_conntrack=`nvram get max_conntrack`
-if [ $max_conntrack -gt 511 ]; then
-	echo "Setting conntrack table size to $max_conntrack."
-	sysctl -w net.ipv4.ip_conntrack_max=$max_conntrack
+if [ ! $max_conntrack ]; then
+	max_conntrack=1008
 fi
+echo "Setting conntrack table size to $max_conntrack."
+sysctl -w net.ipv4.ip_conntrack_max=$max_conntrack
 max_conntrack=`sysctl net.ipv4.ip_conntrack_max | sed s/'net.ipv4.ip_conntrack_max = '//`
 echo "Conntrack table size is $max_conntrack"
+# set for web UI viewing
 nvram set max_conntrack=$max_conntrack
 
