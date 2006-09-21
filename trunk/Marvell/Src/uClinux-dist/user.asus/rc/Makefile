@@ -23,7 +23,6 @@ CFLAGS	+= -s -O2
 #################################
 # other defines:
 # -DDEBUG
-# -DSYSLOGD_TIMEZONE_SUPPORT
 
 INSTALLDIR = ../../../../../firmware_files/rootfs
 #LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared -L$(INSTALLDIR)/shared/usr/lib -lshared 
