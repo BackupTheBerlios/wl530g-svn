@@ -22,5 +22,5 @@ else
 		echo "remote"
 		remote_cmdline="-R $log_ipaddr"
 	fi
-	syslogd -C "$logsize" -m "$mark_interval" "$remote_cmdline"
+	syslogd -C "$logsize" -m "$mark_interval" "$remote_cmdline" &
 fi
