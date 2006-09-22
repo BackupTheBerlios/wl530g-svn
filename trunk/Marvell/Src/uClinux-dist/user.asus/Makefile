@@ -9,6 +9,11 @@ all:
 	make -C rc
 	make -C httpd
 
+romfs:
+	#make -C mtd install
+	make -C rc install
+	make -C httpd install
+
 install: 
 	#make -C mtd install
 	make -C rc install
