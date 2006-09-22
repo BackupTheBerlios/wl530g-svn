@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>IGD Device Description</title>
+<title>Liberated Libertas</title>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=gb2312">
@@ -20,6 +20,13 @@
 <tr>
 <td>
 <img src="./graph/iBox_title_all.jpg" width="666" height="80">
+</td>
+</tr>
+<tr>
+<td>
+<font size=-1>
+Build __CURRENT_DATE__ (r__SVN_REVISION__)
+</font>
 </td>
 </tr>
 </table>
