@@ -1,12 +1,6 @@
 #define DEBG(x)
 #define DEBG1(x)
 
-/* a dumb little hack to reduce size of decompression stub */
-#define GZ_REMOVE_ERROR_TEXT
-#ifdef GZ_REMOVE_ERROR_TEXT
-#define error 
-#endif
-
 /* inflate.c -- Not copyrighted 1992 by Mark Adler
    version c10p1, 10 January 1993 */
 
