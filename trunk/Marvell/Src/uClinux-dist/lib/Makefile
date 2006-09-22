@@ -20,7 +20,9 @@ include $(ARCH_CONFIG)
 #
 # always build these dir_
 #
-dir_y  = $(LIBCDIR) libnet libcrypt_old $(ROOTDIR)/prop
+#dir_y  = $(LIBCDIR) libnet libcrypt_old $(ROOTDIR)/prop
+# we don't need to build uClibc
+dir_y  = libnet libcrypt_old $(ROOTDIR)/prop
 dir_n  =
 dir_   =
 
