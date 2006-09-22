@@ -296,25 +296,7 @@ function markGroup(o, s, c, b) {
             if (document.form.url_num_x_0.value >= c) cFlag=1;		
             else if (document.form.url_keyword_x_0.value=="") bFlag=1;                           	   
             else if (!validate_duplicate(document.form.UrlList_s, document.form.url_keyword_x_0.value, 32, 0)) return false;
-        }         
-        else if (s=='x_FUserList')
-    	{
-    	    if (document.form.usb_ftpnum_x_0.value >= c) cFlag=1;
-    	    else if (!validate_string(document.form.usb_ftpusername_x_0) ||
-    	    	!validate_string(document.form.usb_ftppasswd_x_0) ||
-            	!validate_range(document.form.usb_ftpmaxuser_x_0, 1, 12)) return false;
-            else if (document.form.usb_ftpusername_x_0.value=="" ||
-            	document.form.usb_ftppasswd_x_0.value=="" ||
-            	document.form.usb_ftpmaxuser_x_0.value=="") bFlag=1;
-            else if (!validate_duplicate(document.form.x_FUserList_s, document.form.usb_ftpusername_x_0.value, 16, 0)) return false;	
-        }   
-        else if (s=='x_FBanIPList')
-    	{
-    	    if (document.form.usb_bannum_x_0.value >= c) cFlag=1;
-            else if (!validate_iprange(document.form.usb_ftpbanip_x_0, "")) return false;
-            else if (document.form.usb_ftpbanip_x_0.value=="") bFlag=1;
-            else if (!validate_duplicate(document.form.x_FBanIPList_s, document.form.usb_ftpbanip_x_0.value, 15, 0)) return false;                                                          
-        }
+        }        
         else if (s=='x_QRuleList')
     	{
     	    if (document.form.qos_rulenum_x_0.value >= c) cFlag=1;	    	    
@@ -331,8 +313,7 @@ function markGroup(o, s, c, b) {
             	alert('Please enter a value between 0 to ' + document.form.qos_maxbw_x_0.value + '.');	
             	document.form.qos_minbw_x_0.focus();
             	return false;		
-            }	
-            	
+            }	            	
             //if (document.form.qos_maxbw_x_0.value=="")
             //	document.form.qos_maxbw_x_0.value==document.form.qos_minbw_x_0.value;
             //if (document.form.qos_minbw_x_0.value=="")
@@ -3089,56 +3070,6 @@ function confirmRestore(){
 	   return false;
 	}   
 }
-
-/*
-function is_wlphrase(o) 
-{          
-    var pseed = new Array(4);
-    var wep_key = new Array(8);
-	           
-    if(document.form.WLANConfig11a_WEPType.value!='None')    
-    {       	 	
-        for(i=0; i<o.value.length; i++) {
-            pseed[i%4]^= o.value.charAt(i);
-        }
-       
-        randNumber = pseed[0]|(pseed[1]<<8)|(pseed[2]<<16)|(pseed[3]<<24);          
-        document.form.WLANConfig11a_WEPKey1.value = '';  
-        
-        for (j=0; j<5; j++) 
-        {
-            randNumber *= 0x343fd;
-            randNumber += 0x269ec3;                
-            keystr = ((randNumber>>8) & 0xff);
-            
-            if (keystr>10)
-            {
-            	if (keystr=10) keystr='A';
-            	else if (keystr=11) keystr='B';
-            	else if (keystr=12) keystr='C';
-            	else if (keystr=13) keystr='D';
-            	else if (keystr=14) keystr='E';
-            	else if (keystr=15) keystr='F';            	            	
-            }
-            document.form.WLANConfig11a_WEPKey1.value += keystr;   
-            
-            keystr = ((randNumber>>16) & 0x7f);
-            
-            if (keystr>10)
-            {
-            	if (keystr=10) keystr='A';
-            	else if (keystr=11) keystr='B';
-            	else if (keystr=12) keystr='C';
-            	else if (keystr=13) keystr='D';
-            	else if (keystr=14) keystr='E';
-            	else if (keystr=15) keystr='F';            	            	
-            }
-            document.form.WLANConfig11a_WEPKey1.value += keystr;
-            
-        }                     	             
-    }         
-}
-*/
 
 function validate_wlphrase(s, v, o)
 {   	      	   	   	
