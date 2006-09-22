@@ -341,7 +341,7 @@ romfs:
 	done
 
 	# install busybox 1.2.1 (todo: get rid of stupid shell script)
-	cd budybox-1.2.1
+	cd busybox-1.2.1
 	./install_firmware.sh
 	cd ..
 
