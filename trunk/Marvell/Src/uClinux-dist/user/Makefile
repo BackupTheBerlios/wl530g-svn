@@ -341,9 +341,10 @@ romfs:
 	done
 
 	# install busybox 1.2.1 (todo: get rid of stupid shell script)
-	cd busybox-1.2.1
-	./install_firmware.sh
-	cd ..
+	echo " !!! WARNING: Don't forget to manually install busybox-1.2.1 !!!"
+	#cd busybox-1.2.1
+	#sh ./install_firmware.sh
+	#cd ..
 
 clean:
 	-for i in $(dir_v) $(sort $(dir_y) $(dir_n) $(dir_)) ; do \
