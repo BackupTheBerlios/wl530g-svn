@@ -10,13 +10,11 @@
 HEAD		 = head.o
 OBJS		 = misc.o
 
-# -Derror suppresses all error texts
-CFLAGS		 = $(CPPFLAGS) -O2 -DSTDC_HEADERS $(CFLAGS_PROC) -msoft-float -D__linux__ -Derror
+# SUPPRESS_ERRORS suppresses all error texts
+CFLAGS		 = $(CPPFLAGS) -O2 -DSTDC_HEADERS $(CFLAGS_PROC) -msoft-float -D__linux__ -DSUPPRESS_ERRORS
 
 FONTC		 = $(TOPDIR)/drivers/video/font_acorn_8x8.c
 ZLDFLAGS	 = -p -X -T $(LINUX).lds
-
-GZFLAGS 	 += " -9 "
 
 #
 # Architecture dependencies

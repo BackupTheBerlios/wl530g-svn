@@ -867,7 +867,9 @@ DEBG("dyn5a ");
   {
 DEBG("dyn5b ");
     if (i == 1) {
+#ifndef SUPPRESS_ERRORS
       error(" incomplete literal tree\n");
+#endif
       huft_free(tl);
     }
     return i;                   /* incomplete code set */
@@ -878,7 +880,9 @@ DEBG("dyn5c ");
   {
 DEBG("dyn5d ");
     if (i == 1) {
+#ifndef SUPPRESS_ERRORS
       error(" incomplete distance tree\n");
+#endif
 #ifdef PKZIP_BUG_WORKAROUND
       i = 0;
     }
@@ -1080,27 +1084,37 @@ static int gunzip(void)
 
     if (magic[0] != 037 ||
 	((magic[1] != 0213) && (magic[1] != 0236))) {
+#ifndef SUPPRESS_ERRORS
 	    error("bad gzip magic numbers");
+#endif
 	    return -1;
     }
 
     /* We only support method #8, DEFLATED */
     if (method != 8)  {
+#ifndef SUPPRESS_ERRORS
 	    error("internal error, invalid method");
+#endif
 	    return -1;
     }
 
     flags  = (uch)get_byte();
     if ((flags & ENCRYPTED) != 0) {
+#ifndef SUPPRESS_ERRORS
 	    error("Input is encrypted\n");
+#endif
 	    return -1;
     }
     if ((flags & CONTINUATION) != 0) {
+#ifndef SUPPRESS_ERRORS
 	    error("Multi part input\n");
+#endif
 	    return -1;
     }
     if ((flags & RESERVED) != 0) {
+#ifndef SUPPRESS_ERRORS
 	    error("Input has invalid flags\n");
+#endif
 	    return -1;
     }
     (ulg)get_byte();	/* Get timestamp */
@@ -1133,6 +1147,7 @@ static int gunzip(void)
 	    switch (res) {
 	    case 0:
 		    break;
+#ifndef SUPPRESS_ERRORS
 	    case 1:
 		    error("invalid compressed format (err=1)");
 		    break;
@@ -1144,6 +1159,7 @@ static int gunzip(void)
 		    break;
 	    default:
 		    error("invalid compressed format (other)");
+#endif
 	    }
 	    return -1;
     }
@@ -1164,11 +1180,15 @@ static int gunzip(void)
     
     /* Validate decompression */
     if (orig_crc != CRC_VALUE) {
+#ifndef SUPPRESS_ERRORS
 	    error("crc error");
+#endif
 	    return -1;
     }
     if (orig_len != bytes_out) {
+#ifndef SUPPRESS_ERRORS
 	    error("length error");
+#endif
 	    return -1;
     }
     return 0;

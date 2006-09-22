@@ -203,8 +203,10 @@ static void *malloc(int size)
 {
 	void *p;
 
+	#ifndef SUPPRESS_ERRORS
 	if (size <0) error("Malloc error\n");
 	if (free_mem_ptr <= 0) error("Memory error\n");
+	#endif
 
 	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
 
@@ -212,7 +214,11 @@ static void *malloc(int size)
 	free_mem_ptr += size;
 
 	if (free_mem_ptr >= free_mem_ptr_end)
+	{
+#ifndef SUPPRESS_ERRORS
 		error("Out of memory");
+#endif
+	}
 	return p;
 }
 
@@ -248,7 +254,11 @@ static void gzip_release(void **ptr)
 int fill_inbuf(void)
 {
 	if (insize != 0)
+	{
+#ifndef SUPPRESS_ERRORS
 		error("ran out of input data\n");
+#endif
+	}
 
 	inbuf = input_data;
 	insize = &input_data_end[0] - &input_data[0];
@@ -279,7 +289,7 @@ void flush_window(void)
 	outcnt = 0;
 	puts(".");
 }
-
+#ifndef SUPPRESS_ERRORS
 static void error(char *x)
 {
 	int ptr;
@@ -288,8 +298,9 @@ static void error(char *x)
 	puts(x);
 	puts("\n\n -- System halted");
 
-	while(1);	/* Halt */
+	while(1);	
 }
+#endif
 
 #ifndef STANDALONE_DEBUG
 
@@ -306,9 +317,17 @@ decompress_kernel(ulg output_start, ulg free_mem_ptr_p, ulg free_mem_ptr_end_p,
 	arch_decomp_setup();
 
 	makecrc();
+#ifndef SUPPRESS_ERRORS
 	puts("Uncompressing Linux...");
+#else
+	puts("\n");
+#endif
 	gunzip();
+#ifndef SUPPRESS_ERRORS
+	puts("\n");
+#else
 	puts(" done, booting the kernel.\n");
+#endif
 	return output_ptr;
 }
 #else
