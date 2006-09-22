@@ -442,11 +442,12 @@ stop_logger(void)
 int 
 start_misc(void)
 { 
+#ifdef INCLUDE_INFOSVR
 	char *infosvr_argv[] = {"infosvr", "br0", NULL};
-	char *watchdog_argv[] = {"watchdog", NULL};
-	pid_t pid;
-	
 	_eval(infosvr_argv, NULL, 0, &pid);
+#endif
+	char *watchdog_argv[] = {"watchdog", NULL};
+	pid_t pid;		
 	_eval(watchdog_argv, NULL, 0, &pid);
 
 

@@ -22,7 +22,8 @@ CFLAGS	+= -s -O2
 
 #################################
 # other defines:
-# -DDEBUG
+# DEBUG
+# INCLUDE_INFOSVR
 
 INSTALLDIR = ../../../../../firmware_files/rootfs
 #LDFLAGS	+= -L$(TOP)/nvram -L$(INSTALLDIR)/nvram/usr/lib -lnvram -L$(TOP)/shared -L$(INSTALLDIR)/shared/usr/lib -lshared 
