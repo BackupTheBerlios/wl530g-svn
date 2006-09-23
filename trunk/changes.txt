@@ -1,3 +1,18 @@
+09/22/06
+
+  * busybox: included verbose applet usage messages. 
+  * busybox: included gzip.
+  * busybox: rmmod is back. I had to fix a build error with busybox 1.2.1's implementation.
+  * busybox: turned OFF 'build all sources at once', which surprisingly resulted in a smaller binary.
+  * rc: now does proper scan for version info in /dev/mtd0 again.
+  * rc: removed infosvr startup.
+  * modules: included lockd.o.
+  * modules: included nbd.o.
+  * www: removal of a bit more unused code (from other models).
+  * www: added revision number and build date near 'Liberated Libertas' image (Title.asp).
+  * motd: added build date and revision number to motd/banner.
+  * an assortment of other things i forgot to make note of.
+
 09/20/06
   * added new logread code to httpd for reading the syslogd circular buffer (a.k.a. log viewing now works in web UI).
   * added /etc/init.d/S20syslogd to start/stop syslogd. 
@@ -10,11 +25,10 @@
   * changed default syslogd mark time to 0/disabled (syslogd_mark_min).
   * removed 'cpu' utility from base firmware image to an installable package.
   * fixed default incorrectly handled in /etc/init.d/S10conntrack. This would cause web UI to not show default value if max_conntrack unset.
-  * increased JFFS2 size by 128KB (it will therefore be erased during an upgrade from any previous build).
+  * increased JFFS2 size by 128KB.
 
 09/19/06 (3)
   * important fix: new syslogd didn't have max log size set correctly. This would cause all available RAM to eventually be eaten up by syslog.log. This fix adds proper circular buffer support. Read the log with 'logread'. Web UI needs updating as well, I'll do that shortly.
-
 
 09/19/06 (2)
 

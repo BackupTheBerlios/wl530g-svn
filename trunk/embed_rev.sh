@@ -8,7 +8,8 @@ if [ $# -lt 1 ]; then
 	echo " Invalid usage. Must supply one or more files."
 	exit 1
 fi
-revision_number=$(svn info | grep Revision | cut -c11-)
+svn up readme.txt
+revision_number=$(svn info readme.txt | grep Revision | cut -c11-)
 tempfile=$(mktemp)
 echo " Revision number is $revision_number"
 echo " Temporary file is $tempfile"
