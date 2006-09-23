@@ -29,6 +29,9 @@
 #define FALSE 0
 #endif
 
+/* cprintf to stdout */
+#define cprintf printf
+
 struct variable {
 	char *name;
 	char *longname;

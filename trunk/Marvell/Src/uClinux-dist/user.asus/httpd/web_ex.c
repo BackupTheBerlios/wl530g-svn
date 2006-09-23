@@ -1302,8 +1302,8 @@ apply_cgi(webs_t wp, char_t *urlPrefix, char_t *webDir, int arg,
     {   	
 	/*unlink("/tmp/syslog.log-1");
 	unlink("/tmp/syslog.log");	*/
-	eval("/bin/sh", "/etc/init.d/S20syslogd", "stop");
 	eval("/bin/sh", "/etc/init.d/S20syslogd", "start");	
+	sleep(2);
     	websRedirect(wp, current_url);
         return 0;	
     }

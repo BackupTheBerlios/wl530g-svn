@@ -58,7 +58,7 @@ int busybox_logread(char *pszOutputFile)
 	int i;
 	FILE *fOut=fopen(pszOutputFile,"w");	
 	if(!fOut)
-	{
+	{	
 		return 1;
 	}
 
@@ -135,6 +135,7 @@ int busybox_logread(char *pszOutputFile)
 	if (log_shmid != -1)
 		shmdt(buf);
 	
+	printf("\n httpd.busybox_logread: returning success");
 	fclose(fOut);
 	return 0;
 }
