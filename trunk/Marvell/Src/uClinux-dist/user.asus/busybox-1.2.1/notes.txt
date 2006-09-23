@@ -1,0 +1,7 @@
+
+NOTES:
+
++ With 'build all sources at once' turned OFF in busybox 1.2.1 the end size is about 12KB smaller. Just the opposite of what one would expect, and what the help suggests. However, the effect on compiler speed optimizations is unknown
+
+
+- jeremy collake

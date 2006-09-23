@@ -1,0 +1,8 @@
+
+I forget all the patches I've already made here to get things working, but
+before I forget anymore, here's the latest ones:
+
+ rmmod - fix for missing __NR_delete_module - just used busybox 0.60's rmmod.c.
+
+
+- jeremy collake
