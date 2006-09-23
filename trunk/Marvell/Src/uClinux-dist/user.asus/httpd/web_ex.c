@@ -1082,9 +1082,11 @@ ej_dump(int eid, webs_t wp, int argc, char_t **argv)
 		}
 		eval("rm", szFilename);
 	}
-	   			   
-	sprintf(filename, "/tmp/%s", file);
-	ret+=dump_file(wp, filename);					
+	else
+	{	   			   
+		sprintf(filename, "/tmp/%s", file);
+		ret+=dump_file(wp, filename);					
+	}
 	   
 	return ret;	    
 }	
@@ -2322,10 +2324,17 @@ static char log_headers[] =
 static void 
 do_log_cgi(char *path, FILE *stream)
 {
-	dump_file(stream, "/tmp/syslog.log-1");
-	dump_file(stream, "/tmp/syslog.log");
+	char szFilename[64];	
+	sprintf(szFilename,"/tmp/.syslog-%u",clock());
+	cprintf("logread tempf=%s\n", szFilename);
+	if(busybox_logread(szFilename)==0)
+	{
+         	dump_file(stream, szFilename); 
+	}
+	eval("rm", szFilename);
 	fputs("\r\n", stream); /* terminator */
 	fputs("\r\n", stream); /* terminator */
+
 }
 
 
