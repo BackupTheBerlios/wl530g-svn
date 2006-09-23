@@ -512,8 +512,8 @@ function redrawTree()
        
     doc.write("</td>");
     doc.write("</tr>");
-    doc.write("<tr><td><br /></td></tr><tr><td>Liberated Libertas</td><td>__CURRENT_DATE__ - r__SVN_REVISION__</td></tr>"); 
-    doc.write("<tr><td><a href='http://www.bitsum.com/llf_userguide.asp'>User Guide</a></td></tr>");
+    doc.write("<tr><td><br /></td></tr><tr><td>Liberated Libertas</td></tr><tr><td>__CURRENT_DATE__ - r__SVN_REVISION__</td></tr>"); 
+    //doc.write("<tr><td><a href='http://www.bitsum.com/llf_userguide.asp' target=_new>User Guide</a></td></tr>");
     doc.write("<tr><td><br /></td></tr>");
     doc.write("</table>");      
     redrawNode(foldersTree, doc, 0, 1, "")     
