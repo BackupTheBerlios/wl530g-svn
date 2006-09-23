@@ -3,7 +3,9 @@
   * rc: added new event scripts: /etc/on_wan_up_begin.sh /etc/on_wan_up_end.sh /etc/on_wan_down_begin.sh /etc/on_wan_down_begin.sh which all invoke their /jffs/etc/ counterparts.
   * rc: a little code cleanup.
   * fs: added on_wan event scripts.
-  * httpd: fix to 'save log', improvement to log view, and other cleanup.
+  * httpd: fixed 'save log'.
+  * httpd: faster log view.
+  * httpd: other cleanup.
   * httpd: disabled console debug messages.
   * kernel: some config changes.
   * other misc. changes.
