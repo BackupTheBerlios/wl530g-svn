@@ -22,13 +22,6 @@
 <img src="./graph/iBox_title_all.jpg" width="666" height="80">
 </td>
 </tr>
-<tr>
-<td>
-<font size=-1>
-Build __CURRENT_DATE__ (r__SVN_REVISION__)
-</font>
-</td>
-</tr>
 </table>
 </body>
 </form>

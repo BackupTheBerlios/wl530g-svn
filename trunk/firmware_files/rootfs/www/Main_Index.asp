@@ -8,8 +8,6 @@
 <meta http-equiv="Cache-control" content="no-cache,must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta name="VI60_defaultClientScript" content="JavaScript">
-<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
-<meta name="ProgId" content="FrontPage.Editor.Document">
 </head>
 <script Language="JavaScript"></script>
 <frameset cols="120,506" border="0" framespacing="0" frameborder="NO">

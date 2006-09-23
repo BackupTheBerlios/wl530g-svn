@@ -360,12 +360,7 @@ function clickOnFolderLink(folderName)
     else if (folderName == "Wireless Firewall")
     {
          top.folderFrame.location="Advanced_DMZIP_Content.asp"     
-    }       
-    else if (folderName == "USB Application")
-    {
-           top.folderFrame.location="Advanced_USBStorage_Content.asp"
-           //top.folderFrame.location="Advanced_WebCam_Content.asp"
-    }     
+    }         
     else if (folderName == "Bandwidth Management")
     {
            top.folderFrame.location="Advanced_QOS_Content.asp"
@@ -517,6 +512,8 @@ function redrawTree()
        
     doc.write("</td>");
     doc.write("</tr>");
+    doc.write("<tr><td><br /></td></tr><tr><td>Liberated Libertas</td></tr><tr><td>__CURRENT_DATE__ - r__SVN_REVISION__</td></tr>"); 
+    doc.write("<tr><td><br /></td></tr>");
     doc.write("</table>");      
     redrawNode(foldersTree, doc, 0, 1, "")     
     doc.close()
@@ -729,12 +726,7 @@ var goquick=0;
 
 <frameset cols="120,506" border="0" framespacing="0" frameborder="0" onLoad="initializeTree()">
 <noscript>
-<p><b>You are using a browser which does not support JavaScript.</b>
-<p>If you are using Netscape 2.01 or later then you can enable JavaScript.<br>
-<p>Version 2 or 3: Choose Options|Network Preferences, choose the Languages tab, click Enable Javascript and then click OK.
-<P>Version 4: Choose Edit|Preferences|Advanced, click Enable JavaScript and then click OK.
-<br>
-<P>Note: If you are using Internet Explorer and see this message, then your version does not support JavaScript.  (JavaScript cannot be disabled in Internet Explorer.) Upgrade to 3.1 or later.
+<p><b>ERROR: You are using a browser which does not support JavaScript. Please enable javascript and/or use a javascript capable web browser.</b>
 <P><HR>
 </noscript>
 <frame src="Main_List.asp" marginwidth="10" marginheight="0" name="treeFrame" noresize>
