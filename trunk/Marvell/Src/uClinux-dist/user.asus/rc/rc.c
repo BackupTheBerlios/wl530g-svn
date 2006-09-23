@@ -467,16 +467,10 @@ create_hostapd_conf(void)
 		write_acl_list("/tmp/hostapd.deny");
 	}
 
-	if (strstr(nvram_safe_get("productid"), "WL520"))
-	{	
-		fprintf(fp, "wlan_tx_gpio=1\n");
-		fprintf(fp, "wlan_rx_gpio=1\n");
-	}
-	else
-	{
-		fprintf(fp, "wlan_tx_gpio=0\n");
-		fprintf(fp, "wlan_rx_gpio=0\n");
-	}
+
+	fprintf(fp, "wlan_tx_gpio=0\n");
+	fprintf(fp, "wlan_rx_gpio=0\n");
+
 	fprintf(fp, "antenna=1\n");
 #ifdef WPA2
 	fprintf(fp, "watchdog_timer=1\n");
