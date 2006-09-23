@@ -168,7 +168,8 @@ oldconfig:
 	@$(MAKE) oldconfig_linux
 	@$(MAKE) oldconfig_modules
 	@$(MAKE) oldconfig_config
-	@$(MAKE) oldconfig_uClibc
+	# no reason to build uClibc, we've already done that - find libs in toolchain install
+	#@$(MAKE) oldconfig_uClibc
 	@config/setconfig final
 
 .PHONY: modules
