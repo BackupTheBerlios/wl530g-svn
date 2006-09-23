@@ -485,25 +485,10 @@ start_wan(void)
 
 			/* Bring up i/f */
 			ifconfig(wan_ifname, IFUP, NULL, NULL);
-
-#ifdef BRCM
-			/* do wireless specific config */
-			eval("wlconf", wan_ifname, "up");
-#endif
 		}
 	
 		close(s);
 
-#ifndef ASUS_EXT
-		if (strcmp(wan_proto, "pppoe")==0)
-		{
-		
-		}
-		else if (strcmp(wan_proto, "pptp")==0) 
-		{
-			start_pptp(prefix);
-		}
-#else
 		if (unit==0) 
 		{		
 			FILE *fp;
@@ -593,103 +578,6 @@ start_wan(void)
 			}
 		
 		}
-#ifdef REMOVE
-		/* 
-		* Configure PPPoE connection. The PPPoE client will run 
-		* ip-up/ip-down scripts upon link's connect/disconnect.
-		*/
-		if (strcmp(wan_proto, "pppoe") == 0) {
-			char *pppoe_argv[] = { "pppoecd",
-					       nvram_safe_get(strcat_r(prefix, "ifname", tmp)),
-					       "-u", nvram_safe_get(strcat_r(prefix, "pppoe_username", tmp)),
-					       "-p", nvram_safe_get(strcat_r(prefix, "pppoe_passwd", tmp)),
-					       "-r", nvram_safe_get(strcat_r(prefix, "pppoe_mru", tmp)),
-					       "-t", nvram_safe_get(strcat_r(prefix, "pppoe_mtu", tmp)),
-					       "-i", nvram_match(strcat_r(prefix, "pppoe_demand", tmp), "1") ?
-					       		nvram_safe_get(strcat_r(prefix, "pppoe_idletime", tmp)) : "0",
-#ifdef ASUS_EXT
-						"-I", "30",
-						"-T", "3",
-						"-N", "5",
-#endif
-					       NULL, NULL,	/* pppoe_service */
-					       NULL, NULL,	/* pppoe_ac */
-					       NULL,		/* pppoe_keepalive */
-					       NULL, NULL,	/* ppp unit requested */
-					       NULL
-			}, **arg;
-			int timeout = 5;
-			char pppunit[] = "XXXXXXXXXXXX";
-
-			/* Add optional arguments */
-
-			for (arg = pppoe_argv; *arg; arg++);
-
-#ifdef ASUS_EXT
-			if (nvram_invmatch(strcat_r(prefix, "pppoe_txonly_x", tmp), "0")) {
-				*arg++ = "-o";
-			}
-#endif
-			if (nvram_invmatch(strcat_r(prefix, "pppoe_service", tmp), "")) {
-				*arg++ = "-s";
-				*arg++ = nvram_safe_get(strcat_r(prefix, "pppoe_service", tmp));
-			}
-			if (nvram_invmatch(strcat_r(prefix, "pppoe_ac", tmp), "")) {
-				*arg++ = "-a";
-				*arg++ = nvram_safe_get(strcat_r(prefix, "pppoe_ac", tmp));
-			}
-
-#ifndef ASUS_EXT	// keep alive anyway
-			if (nvram_match(strcat_r(prefix, "pppoe_demand", tmp), "1") || 
-			    nvram_match(strcat_r(prefix, "pppoe_keepalive", tmp), "1"))
-#endif
-				*arg++ = "-k";
-			snprintf(pppunit, sizeof(pppunit), "%d", unit);
-			*arg++ = "-U";
-			*arg++ = pppunit;
-
-			/* launch pppoe client daemon */
-			_eval(pppoe_argv, NULL, 0, &pid);
-
-			/* ppp interface name is referenced from this point on */
-
-			wan_ifname = nvram_safe_get(strcat_r(prefix, "pppoe_ifname", tmp));
-			
-			/* Pretend that the WAN interface is up */
-			if (nvram_match(strcat_r(prefix, "pppoe_demand", tmp), "1")) {
-				/* Wait for pppx to be created */
-				while (ifconfig(wan_ifname, IFUP, NULL, NULL) && timeout--)
-					sleep(1);
-
-				/* Retrieve IP info */
-				if ((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0)
-					continue;
-				strncpy(ifr.ifr_name, wan_ifname, IFNAMSIZ);
-
-				/* Set temporary IP address */
-				if (ioctl(s, SIOCGIFADDR, &ifr))
-					perror(wan_ifname);
-				nvram_set(strcat_r(prefix, "ipaddr", tmp), inet_ntoa(sin_addr(&ifr.ifr_addr)));
-				nvram_set(strcat_r(prefix, "netmask", tmp), "255.255.255.255");
-
-				/* Set temporary P-t-P address */
-				if (ioctl(s, SIOCGIFDSTADDR, &ifr))
-					perror(wan_ifname);
-				nvram_set(strcat_r(prefix, "gateway", tmp), inet_ntoa(sin_addr(&ifr.ifr_dstaddr)));
-
-				close(s);
-
-				/* 
-				* Preset routes so that traffic can be sent to proper pppx even before 
-				* the link is brought up.
-				*/
-
-
-				preset_wan_routes(wan_ifname);
-			}
-		}
-#endif
-#endif
 		/* 
 		* Configure DHCP connection. The DHCP client will run 
 		* 'udhcpc bound'/'udhcpc deconfig' upon finishing IP address 
@@ -881,9 +769,11 @@ wan_up(char *wan_ifname)
 	char tmp[100], prefix[] = "wanXXXXXXXXXX_";
 	char *wan_proto;
 
+	eval("/bin/sh", "/etc/on_wan_up_begin");
+	
 	/* Figure out nvram variable name prefix for this i/f */
 	if (wan_prefix(wan_ifname, prefix) < 0)
-		return;
+		return;	
 
 	wan_proto = nvram_safe_get(strcat_r(prefix, "proto", tmp));	
 
@@ -900,6 +790,8 @@ wan_up(char *wan_ifname)
 
 	/* Add dns servers to resolv.conf */
 	add_ns(wan_ifname);
+
+	eval("/bin/sh", "/etc/on_wan_up_end");
 
 	/* Sync time */
 	//start_ntpc();
@@ -940,6 +832,8 @@ wan_down(char *wan_ifname)
 	char tmp[100], prefix[] = "wanXXXXXXXXXX_";
 	char *wan_proto;
 
+	eval("/bin/sh", "/etc/on_wan_down_begin");
+
 	/* Figure out nvram variable name prefix for this i/f */
 	if (wan_prefix(wan_ifname, prefix) < 0)
 		return;
@@ -973,6 +867,8 @@ wan_down(char *wan_ifname)
 	}
 #endif
 #endif
+
+	eval("/bin/sh", "/etc/on_wan_down_end");
 
 	dprintf("done\n");
 }
@@ -1025,123 +921,6 @@ lan_down(char *lan_ifname)
 	update_lan_status(0);
 }
 #endif
-
-#ifdef REMOVE
-static int
-notify_nas(char *type, char *ifname, char *action)
-{
-	char *argv[] = {"nas4not", type, ifname, action, 
-			NULL,	/* role */
-			NULL,	/* crypto */
-			NULL,	/* auth */
-			NULL,	/* passphrase */
-			NULL,	/* ssid */
-			NULL};
-	char *str = NULL;
-	int retries = 10;
-	char tmp[100], prefix[] = "wlXXXXXXXXXX_";
-	int unit;
-	char remote[ETHER_ADDR_LEN];
-	char ssid[48], pass[80], auth[16], crypto[16], role[8];
-	int i;
-
-	/* the wireless interface must be configured to do WPA */
-	wl_ioctl(ifname, WLC_GET_INSTANCE, &unit, sizeof(unit));
-	snprintf(prefix, sizeof(prefix), "wl%d_", unit);
-	if (nvram_match(strcat_r(prefix, "auth_mode", tmp), "open") ||
-	    nvram_match(strcat_r(prefix, "auth_mode", tmp), "shared"))
-		return 0;
-
-	/* find WDS link configuration */
-	wl_ioctl(ifname, WLC_WDS_GET_REMOTE_HWADDR, remote, ETHER_ADDR_LEN);
-
-	for(i=0;i<ETHER_ADDR_LEN;i++)
-	{
-		sprintf(tmp, "%s %x", tmp, remote[i]);
-	}
-	nvram_set("wl0_nas_hwaddr", tmp);
-
-	
-	for (i = 0; i < MAX_NVPARSE; i ++) {
-		char mac[ETHER_ADDR_STR_LEN];
-		uint8 ea[ETHER_ADDR_LEN];
-
-		if (get_wds_wsec(unit, i, mac, role, crypto, auth, ssid, pass) &&
-		    ether_atoe(mac, ea) && !bcmp(ea, remote, ETHER_ADDR_LEN)) {
-			argv[4] = role;
-			argv[5] = crypto;
-			argv[6] = auth;
-			argv[7] = pass;
-			argv[8] = ssid;
-			break;
-		}
-	}
-
-	/* did not find WDS link configuration, use wireless' */
-	if (i == MAX_NVPARSE) {
-		/* role */
-		argv[4] = "auto";
-		/* crypto */
-		argv[5] = nvram_safe_get(strcat_r(prefix, "crypto", tmp));
-		/* auth mode */
-		argv[6] = nvram_safe_get(strcat_r(prefix, "auth_mode", tmp));
-		/* passphrase */
-		argv[7] = nvram_safe_get(strcat_r(prefix, "wpa_psk", tmp));
-		/* ssid */
-		argv[8] = nvram_safe_get(strcat_r(prefix, "ssid", tmp));
-	}
-
-
-	for(i=0;argv[i]!=NULL;i++)
-	{
-		char *nv[32];
-		sprintf(nv, "wl0_nas_msg%d", i);
-		nvram_set(nv, argv[i]);
-	}
-	
-	/* wait till nas is started */
-	while (retries -- > 0 && !(str = file2str("/tmp/nas.lan.pid")))
-		sleep(1);
-	if (str) {
-		int pid;
-		free(str);
-		nvram_set("wl0_nas_msg99", "ok");
-		return _eval(argv, ">/dev/console", 0, &pid);
-	}
-	return -1;
-}
-#endif
-
-int
-hotplug_net(void)
-{
-#ifdef REMOVE
-	char *lan_ifname = nvram_safe_get("lan_ifname");
-	char *interface, *action;
-
-	if (!(interface = getenv("INTERFACE")) ||
-	    !(action = getenv("ACTION")))
-		return EINVAL;
-
-	if (strncmp(interface, "wds", 3))
-		return 0;
-
-	if (!strcmp(action, "register")) {
-		/* Bring up the interface and add to the bridge */
-		ifconfig(interface, IFUP, NULL, NULL);
-		
-		/* Bridge WDS interfaces */
-		if (!strncmp(lan_ifname, "br", 2) && 
-		    eval("brctl", "addif", lan_ifname, interface))
-		    return 0;
-
-		nvram_set("wl0_nas_msg1", "nas");
-		/* Notify NAS of adding the interface */
-		notify_nas("lan", interface, "up");
-	}
-#endif
-	return 0;
-}
 
 int
 wan_ifunit(char *wan_ifname)
