@@ -769,7 +769,7 @@ wan_up(char *wan_ifname)
 	char tmp[100], prefix[] = "wanXXXXXXXXXX_";
 	char *wan_proto;
 
-	eval("/bin/sh", "/etc/on_wan_up_begin");
+	eval("/bin/sh", "/etc/on_wan_up_begin.sh");
 	
 	/* Figure out nvram variable name prefix for this i/f */
 	if (wan_prefix(wan_ifname, prefix) < 0)
@@ -790,8 +790,6 @@ wan_up(char *wan_ifname)
 
 	/* Add dns servers to resolv.conf */
 	add_ns(wan_ifname);
-
-	eval("/bin/sh", "/etc/on_wan_up_end");
 
 	/* Sync time */
 	//start_ntpc();
@@ -823,6 +821,7 @@ wan_up(char *wan_ifname)
 #endif
 #endif
 	
+	eval("/bin/sh", "/etc/on_wan_up_end.sh");
 	dprintf("done\n");
 }
 
@@ -832,7 +831,7 @@ wan_down(char *wan_ifname)
 	char tmp[100], prefix[] = "wanXXXXXXXXXX_";
 	char *wan_proto;
 
-	eval("/bin/sh", "/etc/on_wan_down_begin");
+	eval("/bin/sh", "/etc/on_wan_down_begin.sh");
 
 	/* Figure out nvram variable name prefix for this i/f */
 	if (wan_prefix(wan_ifname, prefix) < 0)
@@ -868,8 +867,7 @@ wan_down(char *wan_ifname)
 #endif
 #endif
 
-	eval("/bin/sh", "/etc/on_wan_down_end");
-
+	eval("/bin/sh", "/etc/on_wan_down_end.sh");
 	dprintf("done\n");
 }
 
