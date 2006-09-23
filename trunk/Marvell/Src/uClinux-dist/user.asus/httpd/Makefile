@@ -10,7 +10,10 @@ CC=arm-elf-gcc
 INSTALLDIR=../../../../../firmware_files/rootfs
 CFLAGS	+= -I. -I../shared/include -I../../uClinux-dist/uClibc/include -Wall -Dlinux -DLinux -DEMBED -DASUS
 CFLAGS	+= -s -O2
-LDFLAGS	+= -Wl,-elf2flt=""
+LDFLAGS	+= -Wl,-elf2flt=""
+# other defines:
+# SHOW_CONSOLE_OUTPUT
+
 vpath %.c $(TOP)/shared
 vpath %.c $(TOP)/shared_common
 

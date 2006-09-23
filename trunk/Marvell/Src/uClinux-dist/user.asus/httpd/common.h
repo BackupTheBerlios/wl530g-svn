@@ -30,7 +30,11 @@
 #endif
 
 /* cprintf to stdout */
+#ifdef SHOW_CONSOLE_OUTPUT
 #define cprintf printf
+#else
+#define cprintf
+#endif
 
 struct variable {
 	char *name;
