@@ -582,19 +582,6 @@ restore_defaults(void)
 	if (restore_defaults)
 		cprintf("Restoring defaults...");
 
-#ifdef REMOVE
-	/* Delete dynamically generated variables */
-	if (restore_defaults) {
-		char tmp[100], prefix[] = "wlXXXXXXXXXX_";
-		for (i = 0; i < MAX_NVPARSE; i++) {
-			del_filter_client(i);
-			del_forward_port(i);
-			del_autofw_port(i);
-			snprintf(prefix, sizeof(prefix), "wl%d_", i);
-			nvram_unset(strcat_r(prefix, "ifname", tmp));
-		}
-	}
-#endif
 	/* Restore defaults */
 	for (t = router_defaults; t->name; t++) {
 		if (restore_defaults || !nvram_get(t->name)) {
@@ -928,7 +915,9 @@ sysinit(void)
 
 	/* Setup console */
 	if (console_init())
+	{
 		noconsole = 1;
+	}
 	klogctl(8, NULL, atoi(nvram_safe_get("console_loglevel")));
 
 	/* Modules */
@@ -1259,21 +1248,6 @@ main(int argc, char **argv)
 		}
 	}
 
-	/* hotplug [event] */
-	else if (strstr(base, "hotplug")) {
-		if (argc >= 2) {
-			if (!strcmp(argv[1], "net"))
-				return hotplug_net();
-#ifdef ASUS_EXT
-			else if(!strcmp(argv[1], "usb"))
-				return hotplug_usb();
-#endif
-		} else {
-			fprintf(stderr, "usage: hotplug [event]\n");
-			return EINVAL;
-		}
-	}
-
 #ifdef ASUS_EXT
 	/* stop all service */
 	else if (strstr(base, "stopservice")) {
@@ -1291,33 +1265,10 @@ main(int argc, char **argv)
 	else if (strstr(base, "rgcfg")) {
 		return rgcfg_main(argc, argv);
 	}
-#ifdef REMOVE
-	/* send alarm */
-	else if (strstr(base, "sendalarm")) {
-		if (argc >= 1)
-			return sendalarm_main(argc, argv);
-		else {
-			fprintf(stderr, "usage: sendalarm\n");
-			return EINVAL;
-		}
-	}
-#endif
 	/* invoke watchdog */
 	else if (strstr(base, "watchdog")) {
 		return(watchdog_main());
 	}
-#ifdef REMOVE
-	/* remove webcam module */
-	else if (strstr(base, "rmwebcam")) {
-		if (argc >= 2)
-			return (remove_webcam_main(atoi(argv[1])));
-		else return EINVAL;
-	}
-	/* remove usbstorage module */
-	else if (strstr(base, "rmstorage")) {
-		return (remove_storage_main());
-	}
-#endif
 	/* run ntp client */
 	else if (strstr(base, "ntp")) {
 		return (ntp_main());
