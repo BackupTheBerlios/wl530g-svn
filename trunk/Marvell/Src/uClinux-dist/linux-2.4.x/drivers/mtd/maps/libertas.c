@@ -62,7 +62,7 @@ static struct mtd_partition libertas_partitions[] = {
 	},
 	{
 		name: "Libertas AP-32 jffs2",
-		size:   0x000B0000,
+		size:   0x000A0000,
 		offset: 0x00320000,
 	},
 	{
