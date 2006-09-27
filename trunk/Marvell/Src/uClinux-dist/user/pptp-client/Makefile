@@ -1,3 +1,4 @@
+INSTALLDIR=../../../../../firmware_files/rootfs/
 
 EXEC1 = pptp
 OBJS1 = pptp.o pptp_gre.o ppp_fcs.o pty.o pptp_ctrl.o dirutil.o \
@@ -14,7 +15,7 @@ OBJS2 = pptp_callmgr.o pptp_ctrl.o dirutil.o vector.o \
 ### pptp_callmgr.h pptp_ctrl.h dirutil.h pptp_msg.h vector.h
  
 
-CFLAGS += '-DPPPD_BINARY="/bin/pppd"' '-DPPTP_LINUX_VERSION="1.0.2"'
+CFLAGS += '-DPPPD_BINARY="/sbin/pppd"' '-DPPTP_LINUX_VERSION="1.0.2"'
 FLTFLAGS += -s 8192
 
 ifdef BUILD_NETtel
@@ -29,9 +30,13 @@ $(EXEC1):	$(OBJS1)
 $(EXEC2):	$(OBJS2)
 		$(CC) $(LDFLAGS) -o $@ $(OBJS2) $(LDLIBS)
 
-romfs:
+romfs: install
 	$(ROMFSINST) -e CONFIG_USER_PPTP_CLIENT_PPTP /bin/pptp
 	$(ROMFSINST) -e CONFIG_USER_PPTP_CLIENT_PPTP_CALLMGR /bin/pptp_callmgr
+
+install:
+	cp ./pptp $(INSTALLDIR)/sbin/pptp
+	cp ./pptp_callmgr $(INSTALLDIR)/sbin/pptp_callmgr
 
 clean:
 		-rm -f $(EXEC1) $(EXEC2) *.elf *.gdb *.o
