@@ -6,4 +6,4 @@
  */
 
 #define PPTP_SOCKET_PREFIX "/var/run/pptp/"
-#define PPTP_CALLMGR_BINARY "/bin/pptp_callmgr"
+#define PPTP_CALLMGR_BINARY "/sbin/pptp_callmgr"
