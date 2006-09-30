@@ -21,6 +21,7 @@ echo " Log for $OUTPUT_FILE" > build.log
 #
 # export/prepare the filesystem
 #
+./dosyms.sh
 echo " Exporting filesystem ..."
 rm -rf build_temp
 #svn export firmware_files/ build_temp/
