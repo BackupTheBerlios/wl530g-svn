@@ -1,6 +1,6 @@
 #!/bin/sh
 . "./shared.inc"
-VERSION='0.48 beta'
+VERSION='0.49 beta'
 #
 # Title: build_firmware.sh
 # Author: Jeremy Collake <jeremy.collake@gmail.com>
@@ -121,7 +121,7 @@ MakeCramfs ()
 		echo "  ERROR: creating cramfs file system failed.".
 		exit "$?"
 	else
-		echo "  Successfully creted cramfs image."
+		echo "  Successfully created cramfs image."
 	fi
 }
 
@@ -134,6 +134,7 @@ MakeCramfs ()
 Build_WL530G_Image ()
 {
 	echo "  Building wl-530/520/550g style image (static TRX offsets)."
+	# todo: must update asustrx with option to automically align sizes.. 
 	./src/asustrx -p WL530g -v 1.9.4.6 -o "$1/$FIRMARE_BASE_NAME-wl530g.trx" -b 32 "$2/image_parts/segment1" -b 655360 "$2/image_parts/$3"  >> build.log 2>&1	
 }
 
