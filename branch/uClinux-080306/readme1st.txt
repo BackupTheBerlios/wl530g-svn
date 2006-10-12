@@ -7,10 +7,10 @@
 
 # Download uClinux-dist-20060803.tar.gz
   cd /src/wl530g
-  wget http://80.81.183.101/uclinux/uClinux-dist-20060803.tar.gz
+  wget http://www.uclinux.org/pub/uClinux/dist/uClinux-dist-20060803.tar.bz2
 
 # We only want kernel
-  tar xzf uClinux-dist-20060803.tar.gz uClinux-dist/linux-2.4.x
+  tar xjf uClinux-dist-20060803.tar.bz2 uClinux-dist/linux-2.4.x
   mv uClinux-dist/linux-2.4.x linux-2.4.32-uc0-wl530g
   rmdir uClinux-dist
 
