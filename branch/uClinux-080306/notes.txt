@@ -1,0 +1,6 @@
+
+2.4.32 is not fully working yet, though it does boot.
+
+I believe the current problem is with the mtd driver and its partition mapping. These do not seem to be created correctly, resulting in an error finding the nvram and other partitions. The rootfs appears to be readable ok though.
+
+There is no pressing need to get 2.4.32 working - however, since uClinux 2.4.32 already includes squashfs-lzma it will save the trouble of porting squashfs-lzma into the older 2.4.22 kernel currently in use.
